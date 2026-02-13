@@ -9,22 +9,22 @@ export default {
         extend: {
             colors: {
                 background: {
-                    DEFAULT: '#FFF9F0',
-                    secondary: '#FFF5E6',
+                    DEFAULT: 'hsl(var(--background))',
+                    secondary: 'hsl(var(--background-secondary))',
                 },
                 primary: {
-                    DEFAULT: '#9B59B6',
-                    light: '#BB8FCE',
-                    dark: '#7D3C98',
-                    foreground: '#FFFFFF',
+                    DEFAULT: 'hsl(var(--primary))',
+                    foreground: 'hsl(var(--primary-foreground))',
+                    light: 'hsl(var(--primary-light))',
+                    dark: 'hsl(var(--primary-dark))',
                 },
                 accent: {
-                    yellow: '#FFD93D',
-                    orange: '#FF9F45',
+                    yellow: 'hsl(var(--accent-yellow))',
+                    orange: 'hsl(var(--accent-orange))',
                 },
                 text: {
-                    DEFAULT: '#2C2C2C',
-                    secondary: '#6B6B6B',
+                    DEFAULT: 'hsl(var(--text))',
+                    secondary: 'hsl(var(--text-secondary))',
                 },
                 border: 'hsl(var(--border))',
                 input: 'hsl(var(--input))',
