@@ -1,4 +1,3 @@
-import { useState } from 'react';
 import type { TagType } from '../../types/product';
 
 const tags: { name: TagType; emoji: string }[] = [

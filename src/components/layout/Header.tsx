@@ -1,7 +1,10 @@
 import { Link } from 'react-router-dom';
-import { Search, User } from 'lucide-react';
+import { Search, User, Sun, Moon } from 'lucide-react';
+import { useTheme } from '../../hooks/useTheme';
 
 export default function Header() {
+    const { theme, toggleTheme } = useTheme();
+
     return (
         <header className="sticky top-0 z-50 w-full border-b border-border bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
             <div className="container mx-auto px-4 py-4">
@@ -26,14 +29,30 @@ export default function Header() {
                         </div>
                     </div>
 
-                    {/* Login Button */}
-                    <button
-                        className="flex items-center gap-2 px-4 py-2 rounded-full bg-primary text-primary-foreground hover:bg-primary/90 transition-colors"
-                        disabled
-                    >
-                        <User className="h-4 w-4" />
-                        <span className="hidden sm:inline">Login</span>
-                    </button>
+                    {/* Right Side Actions */}
+                    <div className="flex items-center gap-2">
+                        {/* Theme Toggle */}
+                        <button
+                            onClick={toggleTheme}
+                            className="p-2 rounded-full hover:bg-primary/10 transition-colors"
+                            aria-label="Toggle theme"
+                        >
+                            {theme === 'light' ? (
+                                <Moon className="h-5 w-5 text-primary" />
+                            ) : (
+                                <Sun className="h-5 w-5 text-primary" />
+                            )}
+                        </button>
+
+                        {/* Login Button */}
+                        <button
+                            className="flex items-center gap-2 px-4 py-2 rounded-full bg-primary text-primary-foreground hover:bg-primary/90 transition-colors"
+                            disabled
+                        >
+                            <User className="h-4 w-4" />
+                            <span className="hidden sm:inline">Login</span>
+                        </button>
+                    </div>
                 </div>
 
                 {/* Search Bar - Mobile */}
