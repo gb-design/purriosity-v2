@@ -3,6 +3,8 @@ import { Heart, Bookmark, ExternalLink, Star, Share2, X } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import type { Product } from '../../types/product';
 import { formatPurrCount } from '../../lib/utils';
+import { mockProducts } from '../../data/mockProducts';
+import MasonryGrid from '../home/MasonryGrid';
 
 interface ProductDetailViewProps {
     product: Product;
@@ -14,6 +16,11 @@ export default function ProductDetailView({ product, isModal = false }: ProductD
     const [isPurred, setIsPurred] = useState(false);
     const [isSaved, setIsSaved] = useState(false);
     const [purrCount, setPurrCount] = useState(product.purrCount);
+
+    // Filter related products (same tags, exclude current)
+    const relatedProducts = mockProducts
+        .filter(p => p.id !== product.id && p.tags.some(tag => product.tags.includes(tag)))
+        .slice(0, 6);
 
     const handlePurr = () => {
         if (isPurred) {
@@ -138,8 +145,8 @@ export default function ProductDetailView({ product, isModal = false }: ProductD
                         <button
                             onClick={handlePurr}
                             className={`flex-1 flex items-center justify-center gap-2 px-6 py-3 rounded-full border-2 transition-all group ${isPurred
-                                    ? 'border-primary bg-primary/5 text-primary'
-                                    : 'border-border hover:border-primary/50 text-text'
+                                ? 'border-primary bg-primary/5 text-primary'
+                                : 'border-border hover:border-primary/50 text-text'
                                 }`}
                         >
                             <Heart className={`w-6 h-6 transition-transform group-hover:scale-110 ${isPurred ? 'fill-primary stroke-primary' : 'stroke-current'}`} />
@@ -149,8 +156,8 @@ export default function ProductDetailView({ product, isModal = false }: ProductD
                         <button
                             onClick={() => setIsSaved(!isSaved)}
                             className={`flex-1 flex items-center justify-center gap-2 px-6 py-3 rounded-full border-2 transition-all group ${isSaved
-                                    ? 'border-foreground bg-foreground/5 text-foreground'
-                                    : 'border-border hover:border-foreground/50 text-text'
+                                ? 'border-foreground bg-foreground/5 text-foreground'
+                                : 'border-border hover:border-foreground/50 text-text'
                                 }`}
                         >
                             <Bookmark className={`w-6 h-6 transition-transform group-hover:scale-110 ${isSaved ? 'fill-foreground stroke-foreground' : 'stroke-current'}`} />
@@ -159,6 +166,19 @@ export default function ProductDetailView({ product, isModal = false }: ProductD
                     </div>
                 </div>
             </div>
-        </div>
+
+
+            {/* Related Products Section */}
+            {
+                relatedProducts.length > 0 && (
+                    <div className="border-t border-border/40 bg-background/50 p-6 md:p-8 lg:p-12">
+                        <h2 className="font-display text-2xl md:text-3xl font-bold mb-8 text-center">
+                            Mehr wie dieses 🐱
+                        </h2>
+                        <MasonryGrid products={relatedProducts} />
+                    </div>
+                )
+            }
+        </div >
     );
 }

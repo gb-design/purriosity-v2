@@ -108,35 +108,6 @@
   body {
     @apply bg-background text-text font-sans;
     font-feature-settings: "rlig" 1, "calt" 1;
-    position: relative;
-    overflow-x: hidden;
-  }
-
-  body::before {
-    content: "";
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background-image: url('/bg-pattern.svg');
-    background-size: 60px 60px;
-    background-repeat: repeat;
-    pointer-events: none;
-    z-index: -1;
-    opacity: 1;
-    color: var(--text-secondary);
-    /* This colors the SVG */
-    /* Enhance blend mode for better subtlety */
-    mix-blend-mode: overlay;
-  }
-
-  /* Make sure Dark Mode pattern is visible but subtle */
-  .dark body::before {
-    opacity: 0.15;
-    mix-blend-mode: soft-light;
-    filter: invert(1);
-    /* Invert so the pattern is light on dark bg */
   }
 
   html {
@@ -175,5 +146,24 @@
 
   .scrollbar-hide::-webkit-scrollbar {
     display: none;
+  }
+
+  .bg-pattern-overlay {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+
+    /* LIGHT MODE: Purple Pattern */
+    background-image: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='%239B59B6' fill-rule='evenodd' fill-opacity='0.07'%3E%3Cpath d='M36 34c0-2.2 1.8-4 4-4s4 1.8 4 4-1.8 4-4 4-4-1.8-4-4zm-8-10c0-1.7 1.3-3 3-3s3 1.3 3 3-1.3 3-3 3-3-1.3-3-3zm16 4c0-1.7 1.3-3 3-3s3 1.3 3 3-1.3 3-3 3-3-1.3-3-3zm-20 4c0-1.7 1.3-3 3-3s3 1.3 3 3-1.3 3-3 3-3-1.3-3-3zm10 2c-3.3 0-6 2.7-6 6s2.7 6 6 6 6-2.7 6-6-2.7-6-6-6z'/%3E%3Cpath d='M10 10c0-2.2 1.8-4 4-4h6c2.2 0 4 1.8 4 4v2c0 2.2-1.8 4-4 4h-6c-2.2 0-4-1.8-4-4v-2zm-2-2l2 2v-4l-2 2zm18 0l-2-2 2 4v-2z'/%3E%3Cpath d='M50 50c-1.1-2-4-2-5 0-1-2-4-2-5 0-1 2 1 4 2.5 5.5l2.5 2.5 2.5-2.5c1.5-1.5 3.5-3.5 2.5-5.5z'/%3E%3Cpath d='M55 5l1 3 3 1-3 1-1 3-1-3-3-1 3-1 1-3z'/%3E%3C/g%3E%3C/svg%3E");
+    background-size: 180px 180px;
+    background-repeat: repeat;
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  /* DARK MODE: White Pattern */
+  .dark .bg-pattern-overlay {
+    background-image: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='%23FFFFFF' fill-rule='evenodd' fill-opacity='0.05'%3E%3Cpath d='M36 34c0-2.2 1.8-4 4-4s4 1.8 4 4-1.8 4-4 4-4-1.8-4-4zm-8-10c0-1.7 1.3-3 3-3s3 1.3 3 3-1.3 3-3 3-3-1.3-3-3zm16 4c0-1.7 1.3-3 3-3s3 1.3 3 3-1.3 3-3 3-3-1.3-3-3zm-20 4c0-1.7 1.3-3 3-3s3 1.3 3 3-1.3 3-3 3-3-1.3-3-3zm10 2c-3.3 0-6 2.7-6 6s2.7 6 6 6 6-2.7 6-6-2.7-6-6-6z'/%3E%3Cpath d='M10 10c0-2.2 1.8-4 4-4h6c2.2 0 4 1.8 4 4v2c0 2.2-1.8 4-4 4h-6c-2.2 0-4-1.8-4-4v-2zm-2-2l2 2v-4l-2 2zm18 0l-2-2 2 4v-2z'/%3E%3Cpath d='M50 50c-1.1-2-4-2-5 0-1-2-4-2-5 0-1 2 1 4 2.5 5.5l2.5 2.5 2.5-2.5c1.5-1.5 3.5-3.5 2.5-5.5z'/%3E%3Cpath d='M55 5l1 3 3 1-3 1-1 3-1-3-3-1 3-1 1-3z'/%3E%3C/g%3E%3C/svg%3E");
   }
 }

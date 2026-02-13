@@ -11,6 +11,9 @@ npm install
 # Development Server starten
 npm run dev
 
+# Server für Netzwerk/Mobile freigeben
+npm run dev:mobile
+
 # Build für Production
 npm run build
 

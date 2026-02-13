@@ -7,8 +7,11 @@ export default function HeroSection() {
     };
 
     return (
-        <section className="relative bg-gradient-to-br from-background via-background-secondary to-accent-yellow/10 py-16 md:py-24">
-            <div className="container mx-auto px-4 text-center">
+        <div className="relative w-full py-20 px-4 md:py-32 overflow-hidden bg-gradient-to-b from-background via-background-secondary to-background text-center">
+            {/* Background Pattern */}
+            <div className="bg-pattern-overlay opacity-100" />
+
+            <div className="relative z-10 max-w-4xl mx-auto space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-1000">
                 {/* Main Claim */}
                 <h1 className="font-display text-4xl md:text-6xl lg:text-7xl font-bold text-foreground mb-6 text-balance">
                     Die verrückteste Fundgrube für{' '}
@@ -40,6 +43,6 @@ export default function HeroSection() {
                 {/* Decorative Element (optional) */}
                 <div className="mt-12 text-6xl animate-bounce">🐱</div>
             </div>
-        </section>
+        </div>
     );
 }
