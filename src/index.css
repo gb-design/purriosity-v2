@@ -108,6 +108,35 @@
   body {
     @apply bg-background text-text font-sans;
     font-feature-settings: "rlig" 1, "calt" 1;
+    position: relative;
+    overflow-x: hidden;
+  }
+
+  body::before {
+    content: "";
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-image: url('/bg-pattern.svg');
+    background-size: 60px 60px;
+    background-repeat: repeat;
+    pointer-events: none;
+    z-index: -1;
+    opacity: 1;
+    color: var(--text-secondary);
+    /* This colors the SVG */
+    /* Enhance blend mode for better subtlety */
+    mix-blend-mode: overlay;
+  }
+
+  /* Make sure Dark Mode pattern is visible but subtle */
+  .dark body::before {
+    opacity: 0.15;
+    mix-blend-mode: soft-light;
+    filter: invert(1);
+    /* Invert so the pattern is light on dark bg */
   }
 
   html {

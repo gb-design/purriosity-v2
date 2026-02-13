@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useLocation } from 'react-router-dom';
 import { Heart, Bookmark } from 'lucide-react';
 import type { Product } from '../../types/product';
 import { formatPurrCount } from '../../lib/utils';
@@ -9,6 +9,7 @@ interface ProductCardProps {
 }
 
 export default function ProductCard({ product }: ProductCardProps) {
+    const location = useLocation();
     const [isPurred, setIsPurred] = useState(false);
     const [isSaved, setIsSaved] = useState(false);
     const [purrCount, setPurrCount] = useState(product.purrCount);
@@ -32,77 +33,62 @@ export default function ProductCard({ product }: ProductCardProps) {
     };
 
     return (
-        <Link to={`/product/${product.id}`}>
-            <div className="group relative bg-card rounded-lg overflow-hidden shadow-md hover:shadow-xl transition-all duration-300 hover:-translate-y-1 mb-4">
+        <Link to={`/product/${product.id}`} state={{ background: location }}>
+            <div className="group relative bg-card rounded-lg overflow-hidden shadow-md hover:shadow-xl transition-all duration-300 hover:-translate-y-1 mb-4 border border-transparent hover:border-primary/20">
                 {/* Save Button - Top Right */}
                 <button
                     onClick={handleSave}
-                    className="absolute top-3 right-3 z-10 p-2 rounded-full bg-background/80 backdrop-blur-sm hover:bg-background transition-all"
-                    aria-label="Speichern"
+                    className={`absolute top-2 right-2 p-2 rounded-full backdrop-blur-sm transition-all z-10 ${isSaved
+                            ? 'bg-foreground/10 text-foreground'
+                            : 'bg-black/20 text-white hover:bg-white hover:text-foreground opacity-0 group-hover:opacity-100'
+                        }`}
                 >
-                    <Bookmark
-                        className={`h-5 w-5 transition-all ${isSaved ? 'fill-primary text-primary' : 'text-text-secondary'
-                            }`}
-                    />
+                    <Bookmark className={`w-4 h-4 ${isSaved ? 'fill-foreground' : ''}`} />
                 </button>
 
-                {/* Product Image */}
-                <div className="relative overflow-hidden aspect-[3/4]">
+                {/* Image */}
+                <div className="relative aspect-[3/4] overflow-hidden bg-background-secondary">
                     <img
                         src={product.images[0]}
                         alt={product.title}
+                        className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
                         loading="lazy"
-                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
                     />
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
                 </div>
 
-                {/* Product Info */}
+                {/* Content */}
                 <div className="p-4">
-                    {/* Title */}
-                    <h3 className="font-semibold text-lg text-foreground mb-1 line-clamp-2">
+                    <h3 className="font-display font-bold text-lg mb-1 line-clamp-2 leading-tight">
                         {product.title}
                     </h3>
-
-                    {/* Short Description */}
-                    <p className="text-sm text-text-secondary mb-3 line-clamp-2">
+                    <p className="text-sm text-text-secondary line-clamp-2 mb-3">
                         {product.shortDescription}
                     </p>
 
-                    {/* Tags */}
                     <div className="flex flex-wrap gap-1 mb-3">
                         {product.tags.slice(0, 2).map((tag) => (
-                            <span
-                                key={tag}
-                                className="px-2 py-1 text-xs rounded-full bg-primary/10 text-primary"
-                            >
+                            <span key={tag} className="text-xs px-2 py-0.5 bg-secondary rounded-full text-text-secondary">
                                 {tag}
                             </span>
                         ))}
                     </div>
 
-                    {/* Bottom Row: Purr Button + Price */}
-                    <div className="flex items-center justify-between">
-                        {/* Purr Button */}
+                    <div className="flex items-center justify-between mt-2">
+                        <span className="font-bold text-foreground">
+                            {product.price.toFixed(2)} {product.currency === 'EUR' ? '€' : product.currency}
+                        </span>
+
                         <button
                             onClick={handlePurr}
-                            className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-primary/10 hover:bg-primary/20 transition-all group/purr"
-                            aria-label="Purr"
+                            className={`flex items-center gap-1 px-3 py-1.5 rounded-full text-sm font-medium transition-all ${isPurred
+                                    ? 'bg-primary text-primary-foreground shadow-lg shadow-primary/30 scale-105'
+                                    : 'bg-secondary text-text-secondary hover:bg-primary/10 hover:text-primary hover:scale-105'
+                                }`}
                         >
-                            <Heart
-                                className={`h-4 w-4 transition-all group-hover/purr:scale-110 ${isPurred
-                                        ? 'fill-primary text-primary animate-pulse'
-                                        : 'text-primary'
-                                    }`}
-                            />
-                            <span className="text-sm font-medium text-primary">
-                                {formatPurrCount(purrCount)}
-                            </span>
+                            <Heart className={`w-4 h-4 ${isPurred ? 'fill-current animate-pulse' : ''}`} />
+                            <span>{formatPurrCount(purrCount)}</span>
                         </button>
-
-                        {/* Price */}
-                        <span className="text-lg font-bold text-foreground">
-                            {product.price.toFixed(2)} €
-                        </span>
                     </div>
                 </div>
             </div>
