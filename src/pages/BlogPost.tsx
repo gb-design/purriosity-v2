@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import ReactMarkdown from 'react-markdown';
 import { supabase } from '../lib/supabase';
-import { Loader2, Calendar, User, ArrowLeft, Tag } from 'lucide-react';
+import { Loader2, Calendar, User, ArrowLeft, Tag, Share2, Facebook, Twitter, Mail, Link as LinkIcon, Check } from 'lucide-react';
 
 interface BlogPost {
     id: string;
@@ -18,6 +18,7 @@ export default function BlogPost() {
     const { slug } = useParams<{ slug: string }>();
     const [post, setPost] = useState<BlogPost | null>(null);
     const [isLoading, setIsLoading] = useState(true);
+    const [showCopyFeedback, setShowCopyFeedback] = useState(false);
 
     useEffect(() => {
         const fetchPost = async () => {
@@ -103,8 +104,69 @@ export default function BlogPost() {
                         <ReactMarkdown>{post.content}</ReactMarkdown>
                     </div>
 
-                    {/* Tags Footer */}
+                    {/* Share & Tags */}
                     <div className="mt-16 pt-8 border-t border-border">
+
+                        <div className="flex flex-col md:flex-row md:items-center justify-between gap-8 mb-8">
+                            <h3 className="text-lg font-bold flex items-center gap-2">
+                                <Share2 className="h-5 w-5 text-primary" />
+                                Beitrag teilen
+                            </h3>
+                            <div className="flex gap-2">
+                                <button
+                                    onClick={() => {
+                                        navigator.clipboard.writeText(window.location.href);
+                                        setShowCopyFeedback(true);
+                                        setTimeout(() => setShowCopyFeedback(false), 2000);
+                                    }}
+                                    className={`p-3 rounded-full transition-all relative ${showCopyFeedback
+                                        ? 'bg-green-100 text-green-600'
+                                        : 'bg-secondary hover:bg-secondary/80 text-muted-foreground hover:text-foreground'
+                                        }`}
+                                    title="Link kopieren"
+                                >
+                                    {showCopyFeedback ? (
+                                        <Check className="h-5 w-5" />
+                                    ) : (
+                                        <LinkIcon className="h-5 w-5" />
+                                    )}
+
+                                    {/* Tooltip-style notification */}
+                                    {showCopyFeedback && (
+                                        <span className="absolute -top-10 left-1/2 -translate-x-1/2 bg-foreground text-background text-xs py-1 px-2 rounded shadow-lg whitespace-nowrap animate-in fade-in zoom-in duration-200">
+                                            Kopiert!
+                                        </span>
+                                    )}
+                                </button>
+                                <a
+                                    href={`https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(window.location.href)}`}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className="p-3 rounded-full bg-secondary hover:bg-[#1877F2]/10 hover:text-[#1877F2] transition-colors text-muted-foreground"
+                                    title="Auf Facebook teilen"
+                                >
+                                    <Facebook className="h-5 w-5" />
+                                </a>
+                                <a
+                                    href={`https://twitter.com/intent/tweet?url=${encodeURIComponent(window.location.href)}&text=${encodeURIComponent(post.title)}`}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className="p-3 rounded-full bg-secondary hover:bg-[#1DA1F2]/10 hover:text-[#1DA1F2] transition-colors text-muted-foreground"
+                                    title="Auf Twitter teilen"
+                                >
+                                    <Twitter className="h-5 w-5" />
+                                </a>
+                                <a
+                                    href={`mailto:?subject=${encodeURIComponent(post.title)}&body=Schau dir diesen Artikel an: ${encodeURIComponent(window.location.href)}`}
+                                    className="p-3 rounded-full bg-secondary hover:bg-primary/10 hover:text-primary transition-colors text-muted-foreground"
+                                    title="Per E-Mail senden"
+                                >
+                                    <Mail className="h-5 w-5" />
+                                </a>
+                            </div>
+                        </div>
+
+                        {/* Tags Footer */}
                         <div className="flex flex-wrap gap-2">
                             {post.tags.map(tag => (
                                 <span key={tag} className="inline-flex items-center px-3 py-1 rounded-full bg-secondary text-secondary-foreground text-sm">
