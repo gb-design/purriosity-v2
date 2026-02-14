@@ -9,6 +9,11 @@ import ProductModal from './components/products/ProductModal';
 const ProductDetail = lazy(() => import('./pages/ProductDetail'));
 const Blog = lazy(() => import('./pages/Blog'));
 const BlogPost = lazy(() => import('./pages/BlogPost'));
+const AdminLogin = lazy(() => import('./pages/admin/Login'));
+const AdminDashboard = lazy(() => import('./pages/admin/Dashboard'));
+const ProductManagement = lazy(() => import('./pages/admin/ProductManagement'));
+const BlogManagement = lazy(() => import('./pages/admin/BlogManagement'));
+const AdminRoute = lazy(() => import('./components/admin/AdminRoute'));
 
 function App() {
     const location = useLocation();
@@ -25,6 +30,15 @@ function App() {
                         <Route path="/product/:id" element={<ProductDetail />} />
                         <Route path="/blog" element={<Blog />} />
                         <Route path="/blog/:slug" element={<BlogPost />} />
+
+                        {/* Admin Routes */}
+                        <Route path="/admin/login" element={<AdminLogin />} />
+                        <Route element={<AdminRoute />}>
+                            <Route path="/admin" element={<AdminDashboard />} />
+                            <Route path="/admin/products" element={<ProductManagement />} />
+                            <Route path="/admin/blog" element={<BlogManagement />} />
+                            {/* Further admin management routes will go here */}
+                        </Route>
                     </Routes>
                 </Suspense>
 
