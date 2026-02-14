@@ -19,7 +19,7 @@ interface TagFilterProps {
 
 export default function TagFilter({ selectedTag, onTagChange }: TagFilterProps) {
     return (
-        <div className="sticky top-[73px] z-40 w-full bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 border-b border-border py-4">
+        <div className="sticky top-[112px] md:top-[63px] z-40 w-full bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 border-b border-border py-4 transition-[top] duration-300">
             <div className="container mx-auto px-4">
                 <div className="flex gap-2 overflow-x-auto scrollbar-hide pb-2">
                     {tags.map((tag) => (

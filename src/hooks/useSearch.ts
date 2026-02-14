@@ -1,10 +1,12 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '../lib/supabase';
 import { Product } from '../types/product';
+import { POPULAR_TAGS } from '../constants/tags';
 
 export function useSearch() {
     const [searchTerm, setSearchTerm] = useState('');
     const [results, setResults] = useState<Product[]>([]);
+    const [suggestions, setSuggestions] = useState<string[]>([]);
     const [isLoading, setIsLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
 
@@ -12,11 +14,19 @@ export function useSearch() {
         const fetchResults = async () => {
             if (!searchTerm.trim()) {
                 setResults([]);
+                setSuggestions([]);
                 return;
             }
 
             setIsLoading(true);
             setError(null);
+
+            // Local Tag Suggestions
+            const term = searchTerm.toLowerCase();
+            const matchingTags = POPULAR_TAGS.filter(tag =>
+                tag.toLowerCase().includes(term)
+            ).slice(0, 5);
+            setSuggestions(matchingTags);
 
             try {
                 // Split search term into individual words
@@ -40,11 +50,8 @@ export function useSearch() {
                     throw error;
                 }
 
-                if (error) {
-                    throw error;
-                }
-
                 // Map database columns (snake_case) to Product interface (camelCase)
+                // eslint-disable-next-line @typescript-eslint/no-explicit-any
                 const mappedProducts: Product[] = (data || []).map((item: any) => ({
                     id: item.id,
                     title: item.title,
@@ -82,6 +89,7 @@ export function useSearch() {
         searchTerm,
         setSearchTerm,
         results,
+        suggestions,
         isLoading,
         error
     };

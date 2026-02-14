@@ -39,8 +39,8 @@ export default function ProductCard({ product }: ProductCardProps) {
                 <button
                     onClick={handleSave}
                     className={`absolute top-2 right-2 p-2 rounded-full backdrop-blur-sm transition-all z-10 ${isSaved
-                            ? 'bg-foreground/10 text-foreground'
-                            : 'bg-black/20 text-white hover:bg-white hover:text-foreground opacity-0 group-hover:opacity-100'
+                        ? 'bg-foreground/10 text-foreground'
+                        : 'bg-black/20 text-white hover:bg-white hover:text-foreground opacity-0 group-hover:opacity-100'
                         }`}
                 >
                     <Bookmark className={`w-4 h-4 ${isSaved ? 'fill-foreground' : ''}`} />
@@ -68,7 +68,7 @@ export default function ProductCard({ product }: ProductCardProps) {
 
                     <div className="flex flex-wrap gap-1 mb-3">
                         {product.tags.slice(0, 2).map((tag) => (
-                            <span key={tag} className="text-xs px-2 py-0.5 bg-secondary rounded-full text-text-secondary">
+                            <span key={tag} className="text-[10px] uppercase tracking-wider px-2 py-0.5 bg-background border border-border rounded-full text-muted-foreground">
                                 {tag}
                             </span>
                         ))}
@@ -76,14 +76,14 @@ export default function ProductCard({ product }: ProductCardProps) {
 
                     <div className="flex items-center justify-between mt-2">
                         <span className="font-bold text-foreground">
-                            {product.price.toFixed(2)} {product.currency === 'EUR' ? '€' : product.currency}
+                            Mehr Infos
                         </span>
 
                         <button
                             onClick={handlePurr}
                             className={`flex items-center gap-1 px-3 py-1.5 rounded-full text-sm font-medium transition-all ${isPurred
-                                    ? 'bg-primary text-primary-foreground shadow-lg shadow-primary/30 scale-105'
-                                    : 'bg-secondary text-text-secondary hover:bg-primary/10 hover:text-primary hover:scale-105'
+                                ? 'bg-primary text-primary-foreground shadow-lg shadow-primary/30 scale-105'
+                                : 'bg-secondary text-text-secondary hover:bg-primary/10 hover:text-primary hover:scale-105'
                                 }`}
                         >
                             <Heart className={`w-4 h-4 ${isPurred ? 'fill-current animate-pulse' : ''}`} />

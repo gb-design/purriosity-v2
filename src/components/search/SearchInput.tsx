@@ -57,7 +57,7 @@ export default function SearchInput({ className }: SearchInputProps) {
                 isLoading={isLoading}
                 isVisible={showDropdown}
                 onClose={() => setIsFocused(false)}
-                onSelectSuggestion={(term) => {
+                onSelectSuggestion={(term: string) => {
                     setSearchTerm(term);
                     // Keep focus to allow refined search or just execute
                 }}

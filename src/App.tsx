@@ -5,8 +5,10 @@ import Footer from './components/layout/Footer';
 import HomePage from './pages/HomePage';
 import ProductModal from './components/products/ProductModal';
 
-// Lazy load ProductDetail page
+// Lazy load pages
 const ProductDetail = lazy(() => import('./pages/ProductDetail'));
+const Blog = lazy(() => import('./pages/Blog'));
+const BlogPost = lazy(() => import('./pages/BlogPost'));
 
 function App() {
     const location = useLocation();
@@ -21,6 +23,8 @@ function App() {
                     <Routes location={background || location}>
                         <Route path="/" element={<HomePage />} />
                         <Route path="/product/:id" element={<ProductDetail />} />
+                        <Route path="/blog" element={<Blog />} />
+                        <Route path="/blog/:slug" element={<BlogPost />} />
                     </Routes>
                 </Suspense>
 

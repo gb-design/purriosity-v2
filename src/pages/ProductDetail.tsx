@@ -121,7 +121,7 @@ export default function ProductDetail() {
 
                     <div className="flex items-center gap-4 mb-8">
                         <div className="text-3xl font-bold text-accent">
-                            {product.price} {product.currency}
+                            Mehr Infos
                         </div>
                         <div className="h-6 w-px bg-border"></div>
                         <div className="flex items-center gap-1 text-primary font-medium">

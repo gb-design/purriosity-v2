@@ -16,6 +16,7 @@ const createSupabaseClient = () => {
     console.warn('Supabase credentials missing. Using mock client.');
 
     // Return a mock client that doesn't crash but logs warnings
+    // Return a mock client that doesn't crash but logs warnings
     return {
         from: () => ({
             select: () => ({
@@ -24,6 +25,7 @@ const createSupabaseClient = () => {
                 })
             })
         })
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } as any;
 };
 
