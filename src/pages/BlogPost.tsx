@@ -101,7 +101,28 @@ export default function BlogPost() {
             <div className="container mx-auto px-4 mt-12">
                 <div className="max-w-3xl mx-auto">
                     <div className="prose prose-lg prose-neutral dark:prose-invert max-w-none">
-                        <ReactMarkdown>{post.content}</ReactMarkdown>
+                        <ReactMarkdown
+                            components={{
+                                h1: ({ node, ...props }) => <h1 className="text-3xl font-display font-bold text-foreground mt-8 mb-4" {...props} />,
+                                h2: ({ node, ...props }) => <h2 className="text-2xl font-display font-bold text-foreground mt-8 mb-4 border-l-4 border-primary pl-4" {...props} />,
+                                h3: ({ node, ...props }) => <h3 className="text-xl font-display font-bold text-foreground mt-6 mb-3" {...props} />,
+                                p: ({ node, ...props }) => <p className="text-lg leading-relaxed text-muted-foreground mb-6" {...props} />,
+                                ul: ({ node, ...props }) => <ul className="list-disc list-inside space-y-2 mb-6 ml-4 text-muted-foreground" {...props} />,
+                                ol: ({ node, ...props }) => <ol className="list-decimal list-inside space-y-2 mb-6 ml-4 text-muted-foreground" {...props} />,
+                                li: ({ node, ...props }) => <li className="pl-2" {...props} />,
+                                blockquote: ({ node, ...props }) => (
+                                    <blockquote className="border-l-4 border-secondary bg-secondary/10 p-6 rounded-r-xl my-8 italic text-xl text-foreground" {...props} />
+                                ),
+                                img: ({ node, ...props }) => (
+                                    <span className="block my-8">
+                                        <img className="rounded-2xl shadow-lg w-full object-cover max-h-[500px]" {...props} />
+                                        {props.alt && <span className="block text-center text-sm text-muted-foreground mt-2 italic">{props.alt}</span>}
+                                    </span>
+                                ),
+                            }}
+                        >
+                            {post.content}
+                        </ReactMarkdown>
                     </div>
 
                     {/* Share & Tags */}
