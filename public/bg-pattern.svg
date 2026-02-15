@@ -1,40 +1,57 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<svg id="Layer_1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" version="1.1" viewBox="0 0 60 60">
-  <!-- Generator: Adobe Illustrator 30.0.0, SVG Export Plug-In . SVG Version: 2.1.1 Build 123)  -->
+<svg id="leopard-spots-pattern" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 300 300">
   <defs>
-    <style>
-      .st0 {
-        fill: none;
-      }
-
-      .st1 {
-        fill: url(#New_Pattern);
-      }
-    </style>
-    <pattern id="New_Pattern" data-name="New Pattern" x="0" y="0" width="46.7" height="48.7" patternTransform="translate(0 60)" patternUnits="userSpaceOnUse" viewBox="0 0 46.7 48.7">
-      <g>
-        <rect class="st0" width="46.7" height="48.7"/>
-        <g>
-          <path d="M13.6,50.7c.3,2.3-.6,4.3-2.1,4.5-1.5.2-2.9-1.5-3.3-3.8s.6-4.3,2.1-4.5c1.5-.2,2.9,1.5,3.3,3.8Z"/>
-          <path d="M20.5,49.1c-.7,2.3-2.6,3.8-4,3.3-1.5-.5-2.1-2.7-1.4-5.1.7-2.3,2.6-3.8,4-3.3,1.5.5,2.1,2.7,1.4,5.1Z"/>
-          <path d="M21.6,49.6c-1.5,1.9-1.7,4.3-.5,5.2,1.2,1,3.5.2,4.9-1.7,1.5-1.9,1.7-4.3.5-5.2-1.2-1-3.5-.2-4.9,1.7Z"/>
-        </g>
-        <g>
-          <g>
-            <path d="M18,6.4c-2.2-1.1-3.8.7-6.7,1.5-4.3,1.2-5,3.8-3.5,5.2,1.5,1.4,4.1.2,5.9,1.3,0,0,0,0,0,0,0,0,0,0,0,0,1.9,1,2.4,3.8,4.4,4.2,2,.4,3.8-1.6,2.4-5.8-1-2.9-.4-5.2-2.5-6.4Z"/>
-            <path d="M13.6,2c.3,2.3-.6,4.3-2.1,4.5-1.5.2-2.9-1.5-3.3-3.8s.6-4.3,2.1-4.5c1.5-.2,2.9,1.5,3.3,3.8Z"/>
-            <path d="M24.1,7.5c-2.1,1-3.2,2.9-2.6,4.3.7,1.3,2.9,1.6,4.9.6,2.1-1,3.2-2.9,2.6-4.3-.7-1.3-2.9-1.6-4.9-.6Z"/>
-            <path d="M20.5.3c-.7,2.3-2.6,3.8-4,3.3-1.5-.5-2.1-2.7-1.4-5.1.7-2.3,2.6-3.8,4-3.3,1.5.5,2.1,2.7,1.4,5.1Z"/>
-            <path d="M21.6.9c-1.5,1.9-1.7,4.3-.5,5.2,1.2,1,3.5.2,4.9-1.7,1.5-1.9,1.7-4.3.5-5.2-1.2-1-3.5-.2-4.9,1.7Z"/>
-          </g>
-          <path d="M43.2,42.5c1.2-3.6,4.8-2.3,3,1.9-1.2,2.7-4.2,4.6-4.4,4.4-.5-.6-1-1-1.8-3.4-.6-1.8-.9-3.7.3-5.1.6-.8,1.5-1,2.1-.3.7.9.6,2.4.7,2.6Z"/>
-          <path d="M32.9,19.4c.3,0,.7,0,1,.2.7.4.9,1.3.5,2.1-.9,1.5-2.1,2-2.9,2.3-.7.3-1,.4-1.4,1-.4.6-.3,1-.2,1.7.1.9.3,2.1-.6,3.6-.9,1.5-2.1,2-2.9,2.3-.7.3-1,.4-1.4,1-.4.7-1.3.9-2.1.5-.7-.4-.9-1.3-.5-2.1.9-1.5,2.1-2,2.9-2.3.7-.3,1-.4,1.4-1,.4-.6.3-1,.2-1.7-.1-.9-.3-2.1.6-3.6.9-1.5,2.1-2,2.9-2.3.7-.3,1-.4,1.4-1,.2-.4.6-.7,1.1-.7Z"/>
-          <path d="M10.8,38.9c.2,1.2-1,2.3-2.3,2.3s-2.3-1-2.3-2.3,1-2.4,2.3-2.4,2,1,2.2,2.4Z"/>
-          <path d="M48.6,21.7c.1.7-.6,1.3-1.3,1.3s-1.3-.6-1.3-1.3.6-1.4,1.3-1.4,1.1.6,1.3,1.4Z"/>
-        </g>
-        <path d="M1.9,21.7c.1.7-.6,1.3-1.3,1.3s-1.3-.6-1.3-1.3.6-1.4,1.3-1.4,1.1.6,1.3,1.4Z"/>
-      </g>
-    </pattern>
+    <filter id="roughEdges">
+      <feTurbulence type="fractalNoise" baseFrequency="0.8" numOctaves="4" result="noise" seed="2"/>
+      <feDisplacementMap in="SourceGraphic" in2="noise" scale="2"/>
+    </filter>
   </defs>
-  <rect class="st1" width="60" height="60"/>
+  
+  <!-- Base background -->
+  <rect width="300" height="300" fill="white"/>
+  
+  <!-- Large organic spots -->
+  <!-- Spot 1 -->
+  <ellipse cx="40" cy="50" rx="18" ry="22" fill="currentColor" opacity="0.12" filter="url(#roughEdges)"/>
+  <circle cx="35" cy="45" r="8" fill="currentColor" opacity="0.08"/>
+  
+  <!-- Spot 2 -->
+  <ellipse cx="120" cy="80" rx="20" ry="24" fill="currentColor" opacity="0.12" filter="url(#roughEdges)"/>
+  <circle cx="128" cy="75" r="7" fill="currentColor" opacity="0.08"/>
+  <circle cx="115" cy="88" r="6" fill="currentColor" opacity="0.08"/>
+  
+  <!-- Spot 3 -->
+  <ellipse cx="220" cy="120" rx="16" ry="20" fill="currentColor" opacity="0.12" filter="url(#roughEdges)"/>
+  <circle cx="215" cy="115" r="7" fill="currentColor" opacity="0.08"/>
+  
+  <!-- Spot 4 -->
+  <ellipse cx="70" cy="170" rx="22" ry="18" fill="currentColor" opacity="0.12" filter="url(#roughEdges)"/>
+  <circle cx="65" cy="165" r="8" fill="currentColor" opacity="0.08"/>
+  <circle cx="80" cy="175" r="6" fill="currentColor" opacity="0.08"/>
+  
+  <!-- Spot 5 -->
+  <ellipse cx="180" cy="200" rx="19" ry="23" fill="currentColor" opacity="0.12" filter="url(#roughEdges)"/>
+  <circle cx="188" cy="205" r="7" fill="currentColor" opacity="0.08"/>
+  
+  <!-- Spot 6 -->
+  <ellipse cx="260" cy="170" rx="17" ry="21" fill="currentColor" opacity="0.12" filter="url(#roughEdges)"/>
+  <circle cx="268" cy="175" r="6" fill="currentColor" opacity="0.08"/>
+  
+  <!-- Small scattered spots -->
+  <ellipse cx="150" cy="40" rx="12" ry="14" fill="currentColor" opacity="0.08" filter="url(#roughEdges)"/>
+  <ellipse cx="30" cy="230" rx="14" ry="16" fill="currentColor" opacity="0.08" filter="url(#roughEdges)"/>
+  <ellipse cx="250" cy="250" rx="13" ry="15" fill="currentColor" opacity="0.08" filter="url(#roughEdges)"/>
+  
+  <!-- Tiny accent dots -->
+  <circle cx="100" cy="130" r="3" fill="currentColor" opacity="0.06"/>
+  <circle cx="190" cy="90" r="3" fill="currentColor" opacity="0.06"/>
+  <circle cx="60" cy="280" r="3" fill="currentColor" opacity="0.06"/>
+  <circle cx="240" cy="60" r="3" fill="currentColor" opacity="0.06"/>
+  <circle cx="140" cy="250" r="3" fill="currentColor" opacity="0.06"/>
+  <circle cx="270" cy="140" r="2.5" fill="currentColor" opacity="0.06"/>
+  
+  <!-- Additional texture lines -->
+  <path d="M 45 90 Q 60 100, 75 95" stroke="currentColor" stroke-width="1" fill="none" opacity="0.04"/>
+  <path d="M 140 150 Q 160 140, 175 155" stroke="currentColor" stroke-width="1" fill="none" opacity="0.04"/>
+  <path d="M 200 240 Q 220 235, 235 245" stroke="currentColor" stroke-width="1" fill="none" opacity="0.04"/>
 </svg>

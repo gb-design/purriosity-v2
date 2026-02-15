@@ -9,49 +9,62 @@ import ProductModal from './components/products/ProductModal';
 const ProductDetail = lazy(() => import('./pages/ProductDetail'));
 const Blog = lazy(() => import('./pages/Blog'));
 const BlogPost = lazy(() => import('./pages/BlogPost'));
+const AboutPage = lazy(() => import('./pages/AboutPage'));
+const LoginPage = lazy(() => import('./pages/LoginPage'));
+const SavedProductsPage = lazy(() => import('./pages/SavedProductsPage'));
 const AdminLogin = lazy(() => import('./pages/admin/Login'));
 const AdminDashboard = lazy(() => import('./pages/admin/Dashboard'));
 const ProductManagement = lazy(() => import('./pages/admin/ProductManagement'));
 const BlogManagement = lazy(() => import('./pages/admin/BlogManagement'));
+const AdminSettings = lazy(() => import('./pages/admin/Settings'));
 const AdminRoute = lazy(() => import('./components/admin/AdminRoute'));
 
 function App() {
-    const location = useLocation();
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const background = (location.state as any)?.background;
+  const location = useLocation();
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const background = (location.state as any)?.background;
 
-    return (
-        <div className="min-h-screen flex flex-col bg-background text-text transition-colors duration-300">
-            <Header />
-            <main className="flex-1">
-                <Suspense fallback={<div className="min-h-screen flex items-center justify-center"><div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div></div>}>
-                    <Routes location={background || location}>
-                        <Route path="/" element={<HomePage />} />
-                        <Route path="/product/:id" element={<ProductDetail />} />
-                        <Route path="/blog" element={<Blog />} />
-                        <Route path="/blog/:slug" element={<BlogPost />} />
+  return (
+    <div className="min-h-screen flex flex-col bg-background text-text transition-colors duration-300">
+      <Header />
+      <main className="flex-1">
+        <Suspense
+          fallback={
+            <div className="min-h-screen flex items-center justify-center">
+              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+            </div>
+          }
+        >
+          <Routes location={background || location}>
+            <Route path="/" element={<HomePage />} />
+            <Route path="/product/:id" element={<ProductDetail />} />
+            <Route path="/blog" element={<Blog />} />
+            <Route path="/blog/:slug" element={<BlogPost />} />
+            <Route path="/about" element={<AboutPage />} />
+            <Route path="/login" element={<LoginPage />} />
+            <Route path="/favorites" element={<SavedProductsPage />} />
 
-                        {/* Admin Routes */}
-                        <Route path="/admin/login" element={<AdminLogin />} />
-                        <Route element={<AdminRoute />}>
-                            <Route path="/admin" element={<AdminDashboard />} />
-                            <Route path="/admin/products" element={<ProductManagement />} />
-                            <Route path="/admin/blog" element={<BlogManagement />} />
-                            {/* Further admin management routes will go here */}
-                        </Route>
-                    </Routes>
-                </Suspense>
+            {/* Admin Routes */}
+            <Route path="/admin/login" element={<AdminLogin />} />
+            <Route element={<AdminRoute />}>
+              <Route path="/admin" element={<AdminDashboard />} />
+              <Route path="/admin/products" element={<ProductManagement />} />
+              <Route path="/admin/blog" element={<BlogManagement />} />
+              <Route path="/admin/settings" element={<AdminSettings />} />
+            </Route>
+          </Routes>
+        </Suspense>
 
-                {/* Show Modal only if we have a background location */}
-                {background && (
-                    <Routes>
-                        <Route path="/product/:id" element={<ProductModal />} />
-                    </Routes>
-                )}
-            </main>
-            <Footer />
-        </div>
-    );
+        {/* Show Modal only if we have a background location */}
+        {background && (
+          <Routes>
+            <Route path="/product/:id" element={<ProductModal />} />
+          </Routes>
+        )}
+      </main>
+      <Footer />
+    </div>
+  );
 }
 
 export default App;

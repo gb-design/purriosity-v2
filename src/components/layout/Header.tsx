@@ -1,13 +1,17 @@
 import { useState, useEffect } from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { User, Sun, Moon, Menu, X } from 'lucide-react';
+import { User, Sun, Moon, Menu, X, LogOut, Bookmark } from 'lucide-react';
 import { useTheme } from '../../hooks/useTheme';
 import SearchInput from '../search/SearchInput';
+import { useAuth } from '../../hooks/useAuth';
 
 export default function Header() {
     const { theme, toggleTheme } = useTheme();
+    const { user, signOut, loading } = useAuth();
     const [isMenuOpen, setIsMenuOpen] = useState(false);
+    const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
     const location = useLocation();
+    const loginRedirect = `/login?redirect=${encodeURIComponent(location.pathname + location.search)}`;
 
     // Close menu on route change
     useEffect(() => {
@@ -58,10 +62,46 @@ export default function Header() {
                         </nav>
 
                         {/* Login Button (Hidden on small mobile) */}
-                        <button className="hidden sm:flex items-center gap-2 px-3 py-1.5 md:px-4 md:py-2 rounded-full bg-primary text-primary-foreground hover:bg-primary/90 transition-colors whitespace-nowrap text-sm font-medium">
-                            <User className="h-4 w-4" />
-                            <span>Login</span>
-                        </button>
+                        {!loading && user ? (
+                            <div className="hidden sm:flex items-center gap-3 relative">
+                                <button
+                                    onClick={() => setIsUserMenuOpen((prev) => !prev)}
+                                    className="flex items-center gap-2 px-3 py-1.5 rounded-full border border-border text-sm font-medium hover:bg-muted"
+                                >
+                                    <User className="h-4 w-4" />
+                                    {user.email}
+                                </button>
+                                {isUserMenuOpen && (
+                                    <div className="absolute right-0 top-full mt-2 bg-card border border-border rounded-2xl shadow-lg w-56 p-3 text-sm">
+                                        <Link
+                                            to="/favorites"
+                                            className="flex items-center gap-2 px-3 py-2 rounded-xl hover:bg-muted"
+                                            onClick={() => setIsUserMenuOpen(false)}
+                                        >
+                                            <Bookmark className="h-4 w-4" />
+                                            Gespeicherte Produkte
+                                        </Link>
+                                        <button
+                                            onClick={() => {
+                                                setIsUserMenuOpen(false);
+                                                signOut();
+                                            }}
+                                            className="flex items-center gap-2 px-3 py-2 rounded-xl hover:bg-muted w-full text-left"
+                                        >
+                                            <LogOut className="h-4 w-4" /> Logout
+                                        </button>
+                                    </div>
+                                )}
+                            </div>
+                        ) : (
+                            <Link
+                                to={loginRedirect}
+                                className="hidden sm:flex items-center gap-2 px-3 py-1.5 md:px-4 md:py-2 rounded-full bg-primary text-primary-foreground hover:bg-primary/90 transition-colors whitespace-nowrap text-sm font-medium"
+                            >
+                                <User className="h-4 w-4" />
+                                <span>Login</span>
+                            </Link>
+                        )}
 
                         {/* Theme Toggle */}
                         <button
@@ -106,9 +146,34 @@ export default function Header() {
                             Über uns
                         </Link>
                         <div className="border-t border-border pt-4">
-                            <Link to="/login" className="text-lg font-medium hover:text-primary py-2 block text-primary" onClick={() => setIsMenuOpen(false)}>
-                                Login / Registrieren
-                            </Link>
+                            {!loading && user ? (
+                                <div className="flex flex-col gap-2">
+                                    <Link
+                                        to="/favorites"
+                                        className="text-lg font-medium hover:text-primary py-2 block"
+                                        onClick={() => setIsMenuOpen(false)}
+                                    >
+                                        Gespeicherte Produkte
+                                    </Link>
+                                    <button
+                                        onClick={() => {
+                                            signOut();
+                                            setIsMenuOpen(false);
+                                        }}
+                                        className="w-full text-lg font-medium hover:text-primary py-2 block text-primary text-left"
+                                    >
+                                        Logout
+                                    </button>
+                                </div>
+                            ) : (
+                                <Link
+                                    to={loginRedirect}
+                                    className="text-lg font-medium hover:text-primary py-2 block text-primary"
+                                    onClick={() => setIsMenuOpen(false)}
+                                >
+                                    Login / Registrieren
+                                </Link>
+                            )}
                         </div>
                     </nav>
                 </div>
