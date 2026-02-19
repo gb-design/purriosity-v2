@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import AdminLayout from '../../components/admin/AdminLayout';
 import { supabase } from '../../lib/supabase';
+import { useCategories } from '../../hooks/useCategories';
 
 // Prevent body scroll when modal is open
 const handleBodyScroll = (isOpen: boolean) => {
@@ -50,6 +51,7 @@ export default function ProductManagement() {
   const tagsDropdownRef = useRef<HTMLInputElement>(null);
   const [tagsDropdownPosition, setTagsDropdownPosition] = useState({ top: 0, left: 0, width: 0 });
   const [isActiveSupported, setIsActiveSupported] = useState(true);
+  const { categories: availableCategories, loading: categoriesLoading } = useCategories();
 
   const [formData, setFormData] = useState<Partial<Product>>({
     title: '',
@@ -132,6 +134,7 @@ export default function ProductManagement() {
         short_description: '',
         affiliate_url: '',
         tags: [],
+        categories: [],
         images: [],
         featured_image_url: '',
         is_active: true,
@@ -571,6 +574,43 @@ export default function ProductManagement() {
                         Keine Tags vorhanden
                       </div>
                     )}
+                  </div>
+                )}
+              </div>
+
+              <div className="space-y-2">
+                <label className="block text-sm font-bold">Kategorien</label>
+                <p className="text-xs text-muted-foreground">
+                  Wähle die passenden Filterkategorien aus (Mehrfachauswahl möglich).
+                </p>
+                {categoriesLoading ? (
+                  <p className="text-xs text-muted-foreground">Kategorien werden geladen...</p>
+                ) : (
+                  <div className="flex flex-wrap gap-2">
+                    {availableCategories.map((category) => {
+                      const selected = (formData.categories || []).includes(category.name);
+                      return (
+                        <button
+                          type="button"
+                          key={category.id}
+                          onClick={() => {
+                            const current = formData.categories || [];
+                            const next = selected
+                              ? current.filter((c) => c !== category.name)
+                              : [...current, category.name];
+                            setFormData({ ...formData, categories: next });
+                          }}
+                          className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full border text-sm font-medium transition-all ${
+                            selected
+                              ? 'bg-primary text-primary-foreground border-primary shadow'
+                              : 'bg-background border-border text-foreground hover:border-primary'
+                          }`}
+                        >
+                          <span>{category.emoji}</span>
+                          <span>{category.name}</span>
+                        </button>
+                      );
+                    })}
                   </div>
                 )}
               </div>

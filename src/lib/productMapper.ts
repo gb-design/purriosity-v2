@@ -1,4 +1,46 @@
-import type { Product } from '../types/product';
+import type { Product, TagType } from '../types/product';
+
+const TAG_REMAP: Record<string, TagType> = {
+  alle: 'Alle',
+  cute: 'Niedlich',
+  niedlich: 'Niedlich',
+  weird: 'Skurril',
+  skurril: 'Skurril',
+  funny: 'Lustig',
+  lustig: 'Lustig',
+  gift: 'Geschenke',
+  geschenke: 'Geschenke',
+  human: 'für Mensch',
+  'für mensch': 'für Mensch',
+  people: 'für Mensch',
+  pet: 'für Tier',
+  animal: 'für Tier',
+  'für tier': 'für Tier',
+  care: 'Pflege',
+  pflege: 'Pflege',
+  toy: 'Spielzeug',
+  spielzeug: 'Spielzeug',
+  clothing: 'Kleidung',
+  kleidung: 'Kleidung',
+  luxury: 'Luxus',
+  luxus: 'Luxus',
+  feeding: 'Fütterung',
+  fütterung: 'Fütterung',
+  useful: 'Nützliches',
+  nützliches: 'Nützliches',
+  budget: 'Nützliches',
+  smart: 'Nützliches',
+  practical: 'Nützliches',
+};
+
+const normalizeTags = (input: string[]): string[] => {
+  const normalized = new Set<string>();
+  input.forEach((tag) => {
+    const key = tag.toLowerCase().trim();
+    normalized.add(TAG_REMAP[key] ?? tag);
+  });
+  return Array.from(normalized);
+};
 
 // Normalize Supabase rows (snake_case) to our UI-friendly Product shape
 export const mapDbProductToProduct = (item: Record<string, unknown>): Product => {
@@ -8,7 +50,10 @@ export const mapDbProductToProduct = (item: Record<string, unknown>): Product =>
       ? [item['featured_image_url'] as string]
       : [];
 
-  const tags = Array.isArray(item.tags) ? (item.tags as string[]) : [];
+  const tagsArray = Array.isArray(item.tags) ? (item.tags as string[]) : [];
+  const tags = normalizeTags(tagsArray);
+  const categoriesArray = Array.isArray(item.categories) ? (item.categories as string[]) : [];
+  const categories = categoriesArray.length > 0 ? normalizeTags(categoriesArray) : tags;
 
   return {
     id: (item.id as string) ?? '',
@@ -37,13 +82,8 @@ export const mapDbProductToProduct = (item: Record<string, unknown>): Product =>
         : typeof item.viewCount === 'number'
           ? item.viewCount
           : 0,
-    starRating:
-      typeof item['star_rating'] === 'number'
-        ? (item['star_rating'] as number)
-        : typeof item.starRating === 'number'
-          ? item.starRating
-          : 0,
     tags,
+    categories,
     createdAt:
       (item.createdAt as string) ??
       (item['created_at'] as string) ??

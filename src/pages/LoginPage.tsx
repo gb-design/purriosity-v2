@@ -112,7 +112,7 @@ export default function LoginPage() {
                 required
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                className="w-full pl-10 pr-3 py-3 rounded-xl border border-border focus:border-primary focus:ring-2 focus:ring-primary/30 outline-none"
+                className="w-full pl-10 pr-3 py-3 rounded-xl border border-border focus:border-primary focus:ring-2 focus:ring-primary/30 outline-none text-neutral-900 dark:text-neutral-900 placeholder:text-muted-foreground"
                 placeholder="catlover@example.com"
               />
             </div>
@@ -126,7 +126,7 @@ export default function LoginPage() {
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 minLength={6}
-                className="w-full pl-10 pr-3 py-3 rounded-xl border border-border focus:border-primary focus:ring-2 focus:ring-primary/30 outline-none"
+                className="w-full pl-10 pr-3 py-3 rounded-xl border border-border focus:border-primary focus:ring-2 focus:ring-primary/30 outline-none text-neutral-900 dark:text-neutral-900 placeholder:text-muted-foreground"
                 placeholder="••••••••"
               />
             </div>

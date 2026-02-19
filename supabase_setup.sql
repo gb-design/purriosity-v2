@@ -12,6 +12,7 @@ create table public.products (
   view_count integer default 0,
   star_rating numeric default 0,
   tags text[] default '{}',
+  categories text[] default '{}',
   is_active boolean default true,
   created_at timestamp with time zone default timezone('utc'::text, now()) not null
 );

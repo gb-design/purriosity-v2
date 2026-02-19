@@ -1,11 +1,11 @@
 import { useEffect, useState } from 'react';
-import { Heart, Bookmark, ExternalLink, Star, Share2, X } from 'lucide-react';
+import { Heart, Bookmark, ExternalLink, Share2, X } from 'lucide-react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import type { Product } from '../../types/product';
 import { formatPurrCount } from '../../lib/utils';
-import MasonryGrid from '../home/MasonryGrid';
 import { useProductPurr } from '../../hooks/useProductPurr';
 import { useSavedProducts } from '../../hooks/useSavedProducts';
+import ProductCarousel from './ProductCarousel';
 
 interface ProductDetailViewProps {
   product: Product;
@@ -103,16 +103,7 @@ export default function ProductDetailView({
           <div className="flex-1">
             {/* Header / Meta */}
             <div className="flex justify-between items-start mb-4">
-              <div className="flex flex-wrap gap-2">
-                {product.tags.map((tag) => (
-                  <span
-                    key={tag}
-                    className="px-3 py-1 bg-primary/10 text-primary rounded-full text-sm font-medium"
-                  >
-                    {tag}
-                  </span>
-                ))}
-              </div>
+              <div className="flex flex-wrap gap-2" />
               <div className="flex gap-2">
                 <button
                   className="p-2 hover:bg-secondary rounded-full transition-colors text-text-secondary"
@@ -148,24 +139,35 @@ export default function ProductDetailView({
               {product.title}
             </h1>
 
-            <div className="flex items-center gap-2 mb-6 text-yellow-500">
-              <div className="flex">
-                {[1, 2, 3, 4, 5].map((star) => (
-                  <Star
-                    key={star}
-                    className={`w-5 h-5 ${star <= Math.round(product.starRating) ? 'fill-current' : 'text-gray-300 fill-gray-300'}`}
-                  />
-                ))}
-              </div>
-              <span className="text-text-secondary text-sm font-medium ml-1">
-                ({product.viewCount.toLocaleString()} views)
-              </span>
-            </div>
+            <div className="mb-6" />
 
             {/* Description */}
             <div className="prose prose-stone dark:prose-invert max-w-none mb-8">
               <p className="text-lg leading-relaxed text-text-secondary">{product.description}</p>
             </div>
+
+            {(() => {
+              const combined = Array.from(
+                new Set([...(product.tags || []), ...(product.categories || [])])
+              ).filter(Boolean);
+              const limited = combined.slice(0, 10);
+              if (limited.length === 0) return null;
+              return (
+                <div className="mb-8">
+                  <p className="text-sm uppercase tracking-wide text-muted-foreground mb-2">Tags</p>
+                  <div className="flex flex-wrap gap-2">
+                    {limited.map((tag) => (
+                      <span
+                        key={tag}
+                        className="px-3 py-1 bg-secondary text-text-secondary rounded-full border border-border/60 text-sm"
+                      >
+                        {tag}
+                      </span>
+                    ))}
+                  </div>
+                </div>
+              );
+            })()}
 
             <div className="border-t border-border my-8" />
 
@@ -241,7 +243,7 @@ export default function ProductDetailView({
             </div>
           ) : (
             <div className="px-2 sm:px-4">
-              <MasonryGrid products={relatedProducts} />
+              <ProductCarousel products={relatedProducts} />
             </div>
           )}
         </div>

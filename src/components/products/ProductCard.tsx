@@ -78,22 +78,22 @@ export default function ProductCard({ product }: ProductCardProps) {
           </p>
 
           <div className="flex flex-wrap gap-1 mb-3">
-            {product.tags.slice(0, 2).map((tag) => (
-              <span
-                key={tag}
-                className="text-[10px] uppercase tracking-wider px-2 py-0.5 bg-background border border-border rounded-full text-muted-foreground"
-              >
-                {tag}
-              </span>
-            ))}
+            {(product.categories && product.categories.length > 0 ? product.categories : product.tags)
+              .slice(0, 3)
+              .map((category) => (
+                <span
+                  key={category}
+                  className="text-[10px] uppercase tracking-wider px-2 py-0.5 bg-background border border-border rounded-full text-muted-foreground"
+                >
+                  {category}
+                </span>
+              ))}
           </div>
 
-          <div className="flex items-center justify-between mt-4 gap-4">
-            <span className="font-bold text-sm text-foreground">Details</span>
-
+          <div className="mt-4 flex items-center justify-end">
             <button
               onClick={handlePurr}
-              className={`flex items-center gap-1 px-3 py-1.5 rounded-full text-sm font-medium transition-all ${
+              className={`flex items-center gap-2 px-3.5 py-1.5 rounded-full text-sm font-semibold transition-all ${
                 isPurred
                   ? 'bg-primary text-primary-foreground shadow-lg shadow-primary/30 scale-105'
                   : 'bg-secondary text-text-secondary hover:bg-primary/10 hover:text-primary hover:scale-105'

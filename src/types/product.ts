@@ -9,8 +9,8 @@ export interface Product {
   affiliateUrl: string;
   purrCount: number;
   viewCount: number;
-  starRating: number;
   tags: string[];
+  categories?: string[];
   createdAt: string;
   isActive?: boolean;
 }

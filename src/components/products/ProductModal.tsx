@@ -69,6 +69,7 @@ export default function ProductModal() {
     fetchProduct();
   }, [id]);
 
+
   return (
     <div
       className="fixed inset-0 z-[100] flex items-center justify-center bg-black/60 backdrop-blur-sm p-8 sm:p-14 lg:p-20 animate-in fade-in duration-200"
