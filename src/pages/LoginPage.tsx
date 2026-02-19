@@ -12,7 +12,9 @@ export default function LoginPage() {
   const fallbackRedirect = (location.state as { from?: string } | null)?.from;
   const redirectTo = redirectParam || fallbackRedirect || '/';
 
-  const [mode, setMode] = useState<'login' | 'signup'>('login');
+  const [mode, setMode] = useState<'login' | 'signup'>(
+    params.get('mode') === 'signup' ? 'signup' : 'login'
+  );
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState<string | null>(null);
@@ -24,6 +26,11 @@ export default function LoginPage() {
       navigate(redirectTo, { replace: true });
     }
   }, [user, loading, navigate, redirectTo]);
+
+  useEffect(() => {
+    const nextMode = new URLSearchParams(location.search).get('mode') === 'signup' ? 'signup' : 'login';
+    setMode(nextMode);
+  }, [location.search]);
 
   const handleEmailAuth = async (e: React.FormEvent) => {
     e.preventDefault();

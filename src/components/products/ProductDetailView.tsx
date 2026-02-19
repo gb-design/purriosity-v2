@@ -1,10 +1,25 @@
-import { useEffect, useState } from 'react';
-import { Heart, Bookmark, ExternalLink, Share2, X } from 'lucide-react';
+import { useEffect, useRef, useState } from 'react';
+import type { LucideIcon } from 'lucide-react';
+import {
+  Heart,
+  Bookmark,
+  BookmarkPlus,
+  ExternalLink,
+  Link as LinkIcon,
+  LogIn,
+  Mail,
+  MessageCircle,
+  Share2,
+  UserPlus,
+  MoreHorizontal,
+  X,
+} from 'lucide-react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import type { Product } from '../../types/product';
 import { formatPurrCount } from '../../lib/utils';
 import { useProductPurr } from '../../hooks/useProductPurr';
 import { useSavedProducts } from '../../hooks/useSavedProducts';
+import { useAuth } from '../../hooks/useAuth';
 import ProductCarousel from './ProductCarousel';
 
 interface ProductDetailViewProps {
@@ -16,6 +31,43 @@ interface ProductDetailViewProps {
 
 const PLACEHOLDER_IMAGE =
   'https://images.unsplash.com/photo-1518791841217-8f162f1e1131?auto=format&fit=crop&w=900&q=80';
+
+type MenuItem = {
+  key: string;
+  label: string;
+  icon: LucideIcon;
+  action?: () => void;
+  href?: string;
+  external?: boolean;
+};
+
+const normalizeLabel = (label: string) => label.trim().replace(/\s+/g, ' ');
+
+const formatLabel = (label: string) => {
+  const normalized = normalizeLabel(label);
+  if (!normalized) return '';
+  return normalized.replace(/(^|[\s-])([a-zäöüß])/g, (_, boundary: string, char: string) =>
+    `${boundary}${char.toUpperCase()}`
+  );
+};
+
+const getDisplayLabels = (labels?: (string | null | undefined)[]) => {
+  if (!labels) return [];
+  const seen = new Set<string>();
+  const formatted: string[] = [];
+
+  labels.forEach((label) => {
+    if (!label) return;
+    const normalized = normalizeLabel(label);
+    if (!normalized) return;
+    const key = normalized.toLowerCase();
+    if (seen.has(key)) return;
+    seen.add(key);
+    formatted.push(formatLabel(normalized));
+  });
+
+  return formatted;
+};
 
 const buildGalleryImages = (product: Product) => {
   const validImages = (product.images || []).filter((img): img is string => Boolean(img));
@@ -31,17 +83,196 @@ export default function ProductDetailView({
 }: ProductDetailViewProps) {
     const navigate = useNavigate();
     const location = useLocation();
+  const { user } = useAuth();
     const { isSaved, toggleSave } = useSavedProducts();
     const saved = isSaved(product.id);
     const { isPurred, purrCount, togglePurr } = useProductPurr(product.id, product.purrCount);
   const [galleryImages, setGalleryImages] = useState<string[]>(buildGalleryImages(product));
   const [activeImage, setActiveImage] = useState<string>(buildGalleryImages(product)[0]);
+  const categoryLabels = getDisplayLabels(product.categories);
+  const tagLabels = getDisplayLabels(product.tags).slice(0, 10);
+  const [shareMenuOpen, setShareMenuOpen] = useState(false);
+  const [optionsMenuOpen, setOptionsMenuOpen] = useState(false);
+  const shareButtonRef = useRef<HTMLButtonElement>(null);
+  const shareMenuRef = useRef<HTMLDivElement>(null);
+  const optionsButtonRef = useRef<HTMLButtonElement>(null);
+  const optionsMenuRef = useRef<HTMLDivElement>(null);
+  const [shareUrl, setShareUrl] = useState('');
+  const [copyStatus, setCopyStatus] = useState<'idle' | 'copied' | 'error'>('idle');
+  const copyTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   useEffect(() => {
     const nextImages = buildGalleryImages(product);
         setGalleryImages(nextImages);
         setActiveImage(nextImages[0]);
     }, [product]);
+
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      setShareUrl(`${window.location.origin}/product/${product.id}`);
+    }
+  }, [product.id]);
+
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      const target = event.target as Node | null;
+      if (
+        shareMenuOpen &&
+        shareMenuRef.current &&
+        !shareMenuRef.current.contains(target) &&
+        shareButtonRef.current &&
+        !shareButtonRef.current.contains(target)
+      ) {
+        setShareMenuOpen(false);
+      }
+
+      if (
+        optionsMenuOpen &&
+        optionsMenuRef.current &&
+        !optionsMenuRef.current.contains(target) &&
+        optionsButtonRef.current &&
+        !optionsButtonRef.current.contains(target)
+      ) {
+        setOptionsMenuOpen(false);
+      }
+    };
+
+    const handleEscape = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') {
+        setShareMenuOpen(false);
+        setOptionsMenuOpen(false);
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    document.addEventListener('keydown', handleEscape);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+      document.removeEventListener('keydown', handleEscape);
+    };
+  }, [shareMenuOpen, optionsMenuOpen]);
+
+  useEffect(() => {
+    return () => {
+      if (copyTimeoutRef.current) {
+        clearTimeout(copyTimeoutRef.current);
+      }
+    };
+  }, []);
+
+  const resolvedShareUrl = shareUrl ||
+    (typeof window !== 'undefined' ? `${window.location.origin}${location.pathname}${location.search}` : '');
+
+  const mailSubject = encodeURIComponent(`Schau mal: ${product.title}`);
+  const mailBody = encodeURIComponent(`${product.description || ''}\n\n${resolvedShareUrl}`);
+
+  const handleCopyLink = async () => {
+    if (!resolvedShareUrl) return;
+    try {
+      if (navigator?.clipboard?.writeText) {
+        await navigator.clipboard.writeText(resolvedShareUrl);
+      } else {
+        const tempInput = document.createElement('input');
+        tempInput.value = resolvedShareUrl;
+        document.body.appendChild(tempInput);
+        tempInput.select();
+        document.execCommand('copy');
+        document.body.removeChild(tempInput);
+      }
+      setCopyStatus('copied');
+    } catch (error) {
+      console.error('Error copying link', error);
+      setCopyStatus('error');
+    }
+
+    if (copyTimeoutRef.current) {
+      clearTimeout(copyTimeoutRef.current);
+    }
+    copyTimeoutRef.current = setTimeout(() => setCopyStatus('idle'), 2000);
+  };
+
+  const handleNavigateToAuth = (mode: 'login' | 'signup') => {
+    const params = new URLSearchParams({ redirect: `${location.pathname}${location.search}` });
+    if (mode === 'signup') {
+      params.set('mode', 'signup');
+    }
+    navigate(`/login?${params.toString()}`);
+  };
+
+  const handleSaveFromMenu = async () => {
+    const result = await toggleSave(product.id);
+    if (result === 'auth_required') {
+      navigate(`/login?redirect=${encodeURIComponent(location.pathname + location.search)}`);
+      return;
+    }
+    setOptionsMenuOpen(false);
+  };
+
+  const shareItems: MenuItem[] = [
+    {
+      key: 'copy',
+      label: copyStatus === 'copied' ? 'Link kopiert!' : copyStatus === 'error' ? 'Fehler beim Kopieren' : 'Link kopieren',
+      icon: LinkIcon,
+      action: handleCopyLink,
+    },
+    {
+      key: 'mail',
+      label: 'Per E-Mail teilen',
+      icon: Mail,
+      href: `mailto:?subject=${mailSubject}&body=${mailBody}`,
+    },
+    {
+      key: 'whatsapp',
+      label: 'Auf WhatsApp teilen',
+      icon: MessageCircle,
+      href: `https://wa.me/?text=${encodeURIComponent(`${product.title} – ${resolvedShareUrl}`)}`,
+      external: true,
+    },
+    {
+      key: 'facebook',
+      label: 'Auf Facebook teilen',
+      icon: Share2,
+      href: `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(resolvedShareUrl)}`,
+      external: true,
+    },
+  ];
+
+  const optionItems: MenuItem[] = user
+    ? [
+        ...(!saved
+          ? [
+              {
+                key: 'save',
+                label: 'Produkt speichern',
+                icon: BookmarkPlus,
+                action: handleSaveFromMenu,
+              },
+            ]
+          : []),
+        {
+          key: 'favorites',
+          label: 'Zu meinen Favoriten',
+          icon: Bookmark,
+          action: () => {
+            setOptionsMenuOpen(false);
+            navigate('/favorites');
+          },
+        },
+      ]
+    : [
+        {
+          key: 'login',
+          label: 'Einloggen',
+          icon: LogIn,
+          action: () => handleNavigateToAuth('login'),
+        },
+        {
+          key: 'signup',
+          label: 'Registrieren',
+          icon: UserPlus,
+          action: () => handleNavigateToAuth('signup'),
+        },
+      ];
 
   return (
     <div
@@ -102,34 +333,122 @@ export default function ProductDetailView({
         >
           <div className="flex-1">
             {/* Header / Meta */}
-            <div className="flex justify-between items-start mb-4">
-              <div className="flex flex-wrap gap-2" />
-              <div className="flex gap-2">
-                <button
-                  className="p-2 hover:bg-secondary rounded-full transition-colors text-text-secondary"
-                  aria-label="Share"
-                >
-                  <Share2 className="w-5 h-5" />
-                </button>
-                {isModal && (
+            <div className="flex justify-end items-start gap-2 mb-4">
+              <div className="flex gap-2 flex-shrink-0">
+                <div className="relative">
                   <button
-                    className="hidden md:flex p-2 hover:bg-secondary rounded-full transition-colors text-text-secondary"
-                    aria-label="More"
+                    ref={shareButtonRef}
+                    onClick={() => {
+                      setShareMenuOpen((prev) => !prev);
+                      setOptionsMenuOpen(false);
+                    }}
+                    className={`p-2 rounded-full transition-colors ${
+                      shareMenuOpen ? 'bg-secondary text-primary' : 'text-text-secondary hover:bg-secondary'
+                    }`}
+                    aria-haspopup="menu"
+                    aria-expanded={shareMenuOpen}
+                    aria-label="Produkt teilen"
                   >
-                    <svg
-                      className="w-5 h-5 flex-shrink-0"
-                      viewBox="0 0 24 24"
-                      fill="none"
-                      stroke="currentColor"
-                      strokeWidth="2"
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                    >
-                      <circle cx="12" cy="12" r="1" />
-                      <circle cx="19" cy="12" r="1" />
-                      <circle cx="5" cy="12" r="1" />
-                    </svg>
+                    <Share2 className="w-5 h-5" />
                   </button>
+                  {shareMenuOpen && (
+                    <div
+                      ref={shareMenuRef}
+                      className="absolute right-0 mt-3 w-64 bg-card border border-border rounded-2xl shadow-2xl p-2 z-30"
+                    >
+                      <p className="text-xs uppercase tracking-wide text-muted-foreground px-2 pb-2">Teilen</p>
+                      <div className="flex flex-col gap-1">
+                        {shareItems.map(({ key, label, icon: Icon, action, href, external }) => {
+                          const content = (
+                            <div className="flex items-center gap-3">
+                              <Icon className="w-4 h-4 text-primary" />
+                              <span className="text-sm font-medium text-foreground">{label}</span>
+                            </div>
+                          );
+                          return action ? (
+                            <button
+                              key={key}
+                              onClick={() => {
+                                action();
+                              }}
+                              className="w-full text-left px-3 py-2 rounded-xl hover:bg-secondary transition-colors"
+                            >
+                              {content}
+                            </button>
+                          ) : (
+                            <a
+                              key={key}
+                              href={href}
+                              target={external ? '_blank' : undefined}
+                              rel={external ? 'noopener noreferrer' : undefined}
+                              className="w-full text-left px-3 py-2 rounded-xl hover:bg-secondary transition-colors"
+                            >
+                              {content}
+                            </a>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  )}
+                </div>
+
+                {isModal && (
+                  <div className="relative hidden md:block">
+                    <button
+                      ref={optionsButtonRef}
+                      onClick={() => {
+                        setOptionsMenuOpen((prev) => !prev);
+                        setShareMenuOpen(false);
+                      }}
+                      className={`p-2 rounded-full transition-colors ${
+                        optionsMenuOpen ? 'bg-secondary text-primary' : 'text-text-secondary hover:bg-secondary'
+                      }`}
+                      aria-haspopup="menu"
+                      aria-expanded={optionsMenuOpen}
+                      aria-label="Optionen"
+                    >
+                      <MoreHorizontal className="w-5 h-5" />
+                    </button>
+                    {optionsMenuOpen && (
+                      <div
+                        ref={optionsMenuRef}
+                        className="absolute right-0 mt-3 w-60 bg-card border border-border rounded-2xl shadow-2xl p-2 z-30"
+                      >
+                        <p className="text-xs uppercase tracking-wide text-muted-foreground px-2 pb-2">Optionen</p>
+                        <div className="flex flex-col gap-1">
+                          {optionItems.map(({ key, label, icon: Icon, action, href, external }) => {
+                            const content = (
+                              <div className="flex items-center gap-3">
+                                <Icon className="w-4 h-4 text-primary" />
+                                <span className="text-sm font-medium text-foreground">{label}</span>
+                              </div>
+                            );
+                            return action ? (
+                              <button
+                                key={key}
+                                onClick={() => {
+                                  action();
+                                }}
+                                className="w-full text-left px-3 py-2 rounded-xl hover:bg-secondary transition-colors"
+                              >
+                                {content}
+                              </button>
+                            ) : (
+                              <a
+                                key={key}
+                                href={href}
+                                target={external ? '_blank' : undefined}
+                                rel={external ? 'noopener noreferrer' : undefined}
+                                className="w-full text-left px-3 py-2 rounded-xl hover:bg-secondary transition-colors"
+                              >
+                                {content}
+                              </a>
+                            );
+                          })}
+                        </div>
+                      </div>
+                    )}
+                  </div>
                 )}
               </div>
             </div>
@@ -146,28 +465,33 @@ export default function ProductDetailView({
               <p className="text-lg leading-relaxed text-text-secondary">{product.description}</p>
             </div>
 
-            {(() => {
-              const combined = Array.from(
-                new Set([...(product.tags || []), ...(product.categories || [])])
-              ).filter(Boolean);
-              const limited = combined.slice(0, 10);
-              if (limited.length === 0) return null;
-              return (
-                <div className="mb-8">
-                  <p className="text-sm uppercase tracking-wide text-muted-foreground mb-2">Tags</p>
-                  <div className="flex flex-wrap gap-2">
-                    {limited.map((tag) => (
-                      <span
-                        key={tag}
-                        className="px-3 py-1 bg-secondary text-text-secondary rounded-full border border-border/60 text-sm"
-                      >
-                        {tag}
-                      </span>
-                    ))}
-                  </div>
+            {categoryLabels.length > 0 && (
+              <div className="mb-4 flex flex-wrap gap-2">
+                {categoryLabels.map((category) => (
+                  <span
+                    key={category}
+                    className="px-3 py-1 bg-secondary text-text-secondary rounded-full border border-border/60 text-sm"
+                  >
+                    {category}
+                  </span>
+                ))}
+              </div>
+            )}
+
+            {tagLabels.length > 0 && (
+              <div className="mb-8">
+                <div className="flex flex-wrap gap-2">
+                  {tagLabels.map((tag) => (
+                    <span
+                      key={tag}
+                      className="px-3 py-1 bg-secondary text-text-secondary rounded-full border border-border/60 text-sm"
+                    >
+                      {tag}
+                    </span>
+                  ))}
                 </div>
-              );
-            })()}
+              </div>
+            )}
 
             <div className="border-t border-border my-8" />
 

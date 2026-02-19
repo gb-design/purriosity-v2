@@ -38,6 +38,43 @@ interface Product {
   is_active: boolean;
 }
 
+const TAG_LOCALE = 'de-DE';
+
+const sanitizeTagInput = (tag: string) => tag.trim();
+
+const tagKey = (tag: string) => sanitizeTagInput(tag).toLocaleLowerCase(TAG_LOCALE);
+
+const upsertTagValue = (current: string[] = [], nextTag: string) => {
+  const normalized = sanitizeTagInput(nextTag);
+  if (!normalized) return current;
+
+  const key = tagKey(normalized);
+  const index = current.findIndex((tag) => tagKey(tag) === key);
+
+  if (index === -1) {
+    return [...current, normalized];
+  }
+
+  if (current[index] === normalized) {
+    return current;
+  }
+
+  const updated = [...current];
+  updated[index] = normalized;
+  return updated;
+};
+
+const mergeTagValues = (current: string[] = [], nextTags: string[]) => {
+  let acc = current;
+  nextTags.forEach((tag) => {
+    acc = upsertTagValue(acc, tag);
+  });
+  return acc;
+};
+
+const removeTagValue = (current: string[] = [], target: string) =>
+  current.filter((tag) => tagKey(tag) !== tagKey(target));
+
 export default function ProductManagement() {
   const [products, setProducts] = useState<Product[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -99,14 +136,19 @@ export default function ProductManagement() {
       const { data, error } = await supabase.from('products').select('tags');
       if (error) throw error;
 
-      const tagSet = new Set<string>();
+      const tagMap = new Map<string, string>();
       data?.forEach((product: { tags: string[] | null }) => {
         product.tags?.forEach((tag: string) => {
-          tagSet.add(tag.toLowerCase().trim());
+          const normalized = sanitizeTagInput(tag);
+          if (!normalized) return;
+          const key = tagKey(normalized);
+          if (!tagMap.has(key)) {
+            tagMap.set(key, normalized);
+          }
         });
       });
 
-      setAllTags(Array.from(tagSet).sort());
+      setAllTags(Array.from(tagMap.values()).sort((a, b) => a.localeCompare(b, TAG_LOCALE)));
     } catch (error) {
       console.error('Error fetching tags:', error);
     }
@@ -125,7 +167,10 @@ export default function ProductManagement() {
   const handleOpenForm = (product: Product | null = null) => {
     if (product) {
       setEditingProduct(product);
-      setFormData(product);
+      setFormData({
+        ...product,
+        tags: product.tags?.map((tag) => sanitizeTagInput(tag)) || [],
+      });
     } else {
       setEditingProduct(null);
       setFormData({
@@ -417,6 +462,43 @@ export default function ProductManagement() {
             </header>
 
             <form onSubmit={handleSave} className="p-6 space-y-8">
+              <div className="space-y-2">
+                <label className="block text-sm font-bold">Kategorien</label>
+                <p className="text-xs text-muted-foreground">
+                  Wähle die passenden Filterkategorien aus (Mehrfachauswahl möglich).
+                </p>
+                {categoriesLoading ? (
+                  <p className="text-xs text-muted-foreground">Kategorien werden geladen...</p>
+                ) : (
+                  <div className="flex flex-wrap gap-2">
+                    {availableCategories.map((category) => {
+                      const selected = (formData.categories || []).includes(category.name);
+                      return (
+                        <button
+                          type="button"
+                          key={category.id}
+                          onClick={() => {
+                            const current = formData.categories || [];
+                            const next = selected
+                              ? current.filter((c) => c !== category.name)
+                              : [...current, category.name];
+                            setFormData({ ...formData, categories: next });
+                          }}
+                          className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full border text-sm font-medium transition-all ${
+                            selected
+                              ? 'bg-primary text-primary-foreground border-primary shadow'
+                              : 'bg-background border-border text-foreground hover:border-primary'
+                          }`}
+                        >
+                          <span>{category.emoji}</span>
+                          <span>{category.name}</span>
+                        </button>
+                      );
+                    })}
+                  </div>
+                )}
+              </div>
+
               <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                 <div className="space-y-6">
                   <div>
@@ -447,7 +529,7 @@ export default function ProductManagement() {
 
                 <div className="space-y-6">
                   <div>
-                    <label className="block text-sm font-bold mb-2">Affiliate Link</label>
+                    <label className="block text-sm font-bold mb-2">URL</label>
                     <input
                       required
                       type="url"
@@ -492,9 +574,10 @@ export default function ProductManagement() {
                     if (e.key === 'Enter') {
                       e.preventDefault();
                       const input = e.currentTarget;
-                      const value = input.value.trim().toLowerCase();
-                      if (value && !(formData.tags || []).includes(value)) {
-                        setFormData({ ...formData, tags: [...(formData.tags || []), value] });
+                      const currentTags = formData.tags || [];
+                      const updatedTags = upsertTagValue(currentTags, input.value);
+                      if (updatedTags !== currentTags) {
+                        setFormData({ ...formData, tags: updatedTags });
                         input.value = '';
                       }
                     }
@@ -502,12 +585,17 @@ export default function ProductManagement() {
                   onBlur={() => setTimeout(() => setShowTagsDropdown(false), 200)}
                   onChange={(e) => {
                     if (e.currentTarget.value.includes(',')) {
-                      const tags = e.currentTarget.value
+                      const rawTags = e.currentTarget.value
                         .split(',')
-                        .map((t) => t.trim().toLowerCase())
-                        .filter((t) => t);
-                      const newTags = [...new Set([...(formData.tags || []), ...tags])];
-                      setFormData({ ...formData, tags: newTags });
+                        .map((t) => sanitizeTagInput(t))
+                        .filter(Boolean);
+                      if (rawTags.length > 0) {
+                        const currentTags = formData.tags || [];
+                        const updatedTags = mergeTagValues(currentTags, rawTags);
+                        if (updatedTags !== currentTags) {
+                          setFormData({ ...formData, tags: updatedTags });
+                        }
+                      }
                       e.currentTarget.value = '';
                     }
                   }}
@@ -523,12 +611,13 @@ export default function ProductManagement() {
                         {tag}
                         <button
                           type="button"
-                          onClick={() =>
-                            setFormData({
-                              ...formData,
-                              tags: formData.tags?.filter((t) => t !== tag),
-                            })
-                          }
+                          onClick={() => {
+                            const currentTags = formData.tags || [];
+                            const nextTags = removeTagValue(currentTags, tag);
+                            if (nextTags.length !== currentTags.length) {
+                              setFormData({ ...formData, tags: nextTags });
+                            }
+                          }}
                           className="hover:text-destructive"
                         >
                           <X className="h-3 w-3" />
@@ -549,19 +638,26 @@ export default function ProductManagement() {
                   >
                     {allTags.length > 0 ? (
                       allTags.map((tag) => {
-                        const isSelected = formData.tags?.includes(tag);
+                        const currentTags = formData.tags || [];
+                        const isSelected = currentTags.some(
+                          (t) => tagKey(t) === tagKey(tag)
+                        );
                         return (
                           <button
                             key={tag}
                             type="button"
                             onClick={() => {
-                              const currentTags = formData.tags || [];
-                              setFormData({
-                                ...formData,
-                                tags: isSelected
-                                  ? currentTags.filter((t) => t !== tag)
-                                  : [...currentTags, tag],
-                              });
+                              if (isSelected) {
+                                const nextTags = removeTagValue(currentTags, tag);
+                                if (nextTags.length !== currentTags.length) {
+                                  setFormData({ ...formData, tags: nextTags });
+                                }
+                              } else {
+                                const nextTags = upsertTagValue(currentTags, tag);
+                                if (nextTags !== currentTags) {
+                                  setFormData({ ...formData, tags: nextTags });
+                                }
+                              }
                             }}
                             className={`w-full text-left px-4 py-2 transition-all border-b border-border last:border-b-0 ${isSelected ? 'bg-primary/10 text-primary font-bold' : 'hover:bg-muted'}`}
                           >
@@ -574,43 +670,6 @@ export default function ProductManagement() {
                         Keine Tags vorhanden
                       </div>
                     )}
-                  </div>
-                )}
-              </div>
-
-              <div className="space-y-2">
-                <label className="block text-sm font-bold">Kategorien</label>
-                <p className="text-xs text-muted-foreground">
-                  Wähle die passenden Filterkategorien aus (Mehrfachauswahl möglich).
-                </p>
-                {categoriesLoading ? (
-                  <p className="text-xs text-muted-foreground">Kategorien werden geladen...</p>
-                ) : (
-                  <div className="flex flex-wrap gap-2">
-                    {availableCategories.map((category) => {
-                      const selected = (formData.categories || []).includes(category.name);
-                      return (
-                        <button
-                          type="button"
-                          key={category.id}
-                          onClick={() => {
-                            const current = formData.categories || [];
-                            const next = selected
-                              ? current.filter((c) => c !== category.name)
-                              : [...current, category.name];
-                            setFormData({ ...formData, categories: next });
-                          }}
-                          className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full border text-sm font-medium transition-all ${
-                            selected
-                              ? 'bg-primary text-primary-foreground border-primary shadow'
-                              : 'bg-background border-border text-foreground hover:border-primary'
-                          }`}
-                        >
-                          <span>{category.emoji}</span>
-                          <span>{category.name}</span>
-                        </button>
-                      );
-                    })}
                   </div>
                 )}
               </div>

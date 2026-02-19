@@ -5,7 +5,7 @@ import { useAuth } from '../hooks/useAuth';
 import { mapDbProductToProduct } from '../lib/productMapper';
 import type { Product } from '../types/product';
 import MasonryGrid from '../components/home/MasonryGrid';
-import { Loader2, Bookmark } from 'lucide-react';
+import { Loader2, Bookmark, ArrowLeft } from 'lucide-react';
 import { useSavedProducts } from '../hooks/useSavedProducts';
 
 export default function SavedProductsPage() {
@@ -14,12 +14,19 @@ export default function SavedProductsPage() {
   const [savedProducts, setSavedProducts] = useState<Product[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const { savedIds } = useSavedProducts();
+  const [canGoBack, setCanGoBack] = useState(false);
 
   useEffect(() => {
     if (!loading && !user) {
       navigate('/login?redirect=/favorites', { replace: true });
     }
   }, [user, loading, navigate]);
+
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      setCanGoBack(window.history.length > 1);
+    }
+  }, []);
 
   useEffect(() => {
     const fetchSaved = async () => {
@@ -54,14 +61,25 @@ export default function SavedProductsPage() {
 
   return (
     <div className="container mx-auto px-4 py-12">
-      <div className="flex items-center gap-3 mb-8">
-        <div className="p-3 rounded-2xl bg-primary/10 text-primary">
-          <Bookmark className="h-6 w-6" />
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between mb-8">
+        <div className="flex items-center gap-3">
+          <div className="p-3 rounded-2xl bg-primary/10 text-primary">
+            <Bookmark className="h-6 w-6" />
+          </div>
+          <div>
+            <h1 className="text-3xl font-display font-bold">Deine gespeicherten Produkte</h1>
+            <p className="text-text-secondary">Alle Favoriten auf einen Blick – nur für dich sichtbar.</p>
+          </div>
         </div>
-        <div>
-          <h1 className="text-3xl font-display font-bold">Deine gespeicherten Produkte</h1>
-          <p className="text-text-secondary">Alle Favoriten auf einen Blick – nur für dich sichtbar.</p>
-        </div>
+        {canGoBack && (
+          <button
+            onClick={() => navigate(-1)}
+            className="inline-flex items-center justify-center gap-2 self-start rounded-full border border-border px-4 py-2 text-sm font-semibold text-primary hover:bg-primary/5"
+          >
+            <ArrowLeft className="h-4 w-4" />
+            Zurück
+          </button>
+        )}
       </div>
 
       {isLoading ? (
