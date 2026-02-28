@@ -1,20 +1,49 @@
 import { useEffect, useState } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
-import { X, Loader2 } from 'lucide-react';
+import { useParams, useNavigate, useLocation, type Location } from 'react-router-dom';
+import { X, Loader2, ChevronLeft, ChevronRight } from 'lucide-react';
 import ProductDetailView from './ProductDetailView';
 import { supabase } from '../../lib/supabase';
 import { mapDbProductToProduct } from '../../lib/productMapper';
 import type { Product } from '../../types/product';
 import { fetchRelatedProducts } from '../../lib/productService';
 
+type ModalLocationState = {
+  background?: Location;
+  productSequence?: string[];
+  productIndex?: number;
+};
+
 export default function ProductModal() {
   const { id } = useParams();
   const navigate = useNavigate();
+  const location = useLocation();
   const [product, setProduct] = useState<Product | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [relatedProducts, setRelatedProducts] = useState<Product[]>([]);
   const [relatedLoading, setRelatedLoading] = useState(false);
+  const modalState = (location.state as ModalLocationState) ?? {};
+  const productSequence = modalState.productSequence ?? [];
+  const sequenceIndex =
+    typeof modalState.productIndex === 'number' ? modalState.productIndex : null;
+  const hasPrevProduct = sequenceIndex !== null && sequenceIndex > 0;
+  const hasNextProduct =
+    sequenceIndex !== null && sequenceIndex < productSequence.length - 1;
+
+  const handleSequenceNavigate = (direction: 1 | -1) => {
+    if (sequenceIndex === null) return;
+    const nextIndex = sequenceIndex + direction;
+    if (nextIndex < 0 || nextIndex >= productSequence.length) return;
+    const nextId = productSequence[nextIndex];
+    navigate(`/product/${nextId}`, {
+      replace: true,
+      state: {
+        ...modalState,
+        productSequence,
+        productIndex: nextIndex,
+      },
+    });
+  };
 
   useEffect(() => {
     // Disable body scroll when modal is open
@@ -72,16 +101,36 @@ export default function ProductModal() {
 
   return (
     <div
-      className="fixed inset-0 z-[100] flex items-center justify-center bg-black/60 backdrop-blur-sm p-8 sm:p-14 lg:p-20 animate-in fade-in duration-200"
+      className="fixed inset-0 z-[100] flex items-center justify-center bg-black/60 backdrop-blur-sm p-4 sm:p-8 lg:p-16 animate-in fade-in duration-200"
       onClick={() => navigate(-1)}
     >
       <div
-        className="relative w-full max-w-5xl h-[90vh] bg-card rounded-2xl shadow-2xl overflow-y-auto overflow-x-hidden animate-in zoom-in-50 duration-300 slide-in-from-bottom-10 scrollbar-soft"
+        className="relative w-full max-w-5xl h-[95vh] sm:h-[90vh] bg-card rounded-t-2xl sm:rounded-2xl shadow-2xl overflow-y-auto overflow-x-hidden animate-in zoom-in-50 duration-300 slide-in-from-bottom-10 scrollbar-soft"
         onClick={(e) => e.stopPropagation()}
       >
+        {hasPrevProduct && (
+          <button
+            type="button"
+            aria-label="Vorheriges Produkt"
+            onClick={() => handleSequenceNavigate(-1)}
+            className="absolute left-2 top-1/2 -translate-y-1/2 z-40 p-2 rounded-full bg-background/80 text-foreground shadow md:left-4"
+          >
+            <ChevronLeft className="w-5 h-5" />
+          </button>
+        )}
+        {hasNextProduct && (
+          <button
+            type="button"
+            aria-label="Nächstes Produkt"
+            onClick={() => handleSequenceNavigate(1)}
+            className="absolute right-2 top-1/2 -translate-y-1/2 z-40 p-2 rounded-full bg-background/80 text-foreground shadow md:right-4"
+          >
+            <ChevronRight className="w-5 h-5" />
+          </button>
+        )}
         <button
           onClick={() => navigate(-1)}
-          className="absolute top-4 right-4 z-50 p-2 bg-background/50 hover:bg-background rounded-full transition-colors backdrop-blur text-foreground"
+          className="hidden md:flex absolute top-4 right-4 z-50 p-2 bg-background/70 hover:bg-background rounded-full transition-colors backdrop-blur text-foreground"
         >
           <X className="w-6 h-6" />
         </button>

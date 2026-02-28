@@ -277,7 +277,7 @@ export default function ProductDetailView({
   return (
     <div
       className={`bg-card w-full ${
-        isModal ? 'rounded-xl overflow-hidden p-6 sm:p-8 lg:p-8' : 'min-h-screen'
+        isModal ? 'rounded-xl overflow-hidden p-4 sm:p-6 lg:p-8' : 'min-h-screen'
       }`}
     >
       <div className="flex flex-col md:flex-row h-full">
@@ -291,7 +291,7 @@ export default function ProductDetailView({
             {isModal && (
               <button
                 onClick={() => navigate(-1)}
-                className="absolute top-4 left-4 z-10 p-2 bg-black/20 hover:bg-black/40 text-white rounded-full backdrop-blur transition-colors md:hidden"
+                className="absolute top-3 right-3 z-10 p-2 bg-black/40 hover:bg-black/60 text-white rounded-full backdrop-blur transition-colors md:hidden"
               >
                 <X className="w-6 h-6" />
               </button>
@@ -305,7 +305,7 @@ export default function ProductDetailView({
           </div>
 
           {galleryImages.length > 1 && (
-            <div className="grid grid-cols-5 gap-3 mt-4">
+            <div className="grid grid-cols-5 gap-3 mt-2">
               {galleryImages.map((img, index) => (
                 <button
                   key={`${img}-${index}`}
@@ -329,7 +329,7 @@ export default function ProductDetailView({
 
         {/* Right Column: Details */}
         <div
-          className={`flex flex-col p-6 md:p-8 lg:p-12 ${isModal ? 'md:w-1/2' : 'w-full max-w-2xl mx-auto'}`}
+          className={`flex flex-col p-4 sm:p-6 md:p-8 lg:p-10 ${isModal ? 'md:w-1/2' : 'w-full max-w-2xl mx-auto'}`}
         >
           <div className="flex-1">
             {/* Header / Meta */}
@@ -454,19 +454,19 @@ export default function ProductDetailView({
             </div>
 
             {/* Title & Price */}
-            <h1 className="font-display text-3xl md:text-4xl font-bold text-foreground mb-4 leading-tight">
+            <h1 className="font-display text-3xl md:text-4xl font-bold text-foreground mb-3 leading-tight">
               {product.title}
             </h1>
 
-            <div className="mb-6" />
+            <div className="mb-4" />
 
             {/* Description */}
-            <div className="prose prose-stone dark:prose-invert max-w-none mb-8">
+            <div className="prose prose-stone dark:prose-invert max-w-none mb-6">
               <p className="text-lg leading-relaxed text-text-secondary">{product.description}</p>
             </div>
 
             {categoryLabels.length > 0 && (
-              <div className="mb-4 flex flex-wrap gap-2">
+              <div className="mb-3 flex flex-wrap gap-2">
                 {categoryLabels.map((category) => (
                   <span
                     key={category}
@@ -479,7 +479,7 @@ export default function ProductDetailView({
             )}
 
             {tagLabels.length > 0 && (
-              <div className="mb-8">
+              <div className="mb-6">
                 <div className="flex flex-wrap gap-2">
                   {tagLabels.map((tag) => (
                     <span
