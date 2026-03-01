@@ -11,6 +11,9 @@ CREATE TABLE IF NOT EXISTS public.categories (
 -- Drop existing policies if they exist
 DROP POLICY IF EXISTS "Categories are viewable by everyone" ON public.categories;
 DROP POLICY IF EXISTS "Categories can be managed by authenticated users" ON public.categories;
+DROP POLICY IF EXISTS "Categories admin insert" ON public.categories;
+DROP POLICY IF EXISTS "Categories admin update" ON public.categories;
+DROP POLICY IF EXISTS "Categories admin delete" ON public.categories;
 
 -- RLS Policy: Public Read (for frontend)
 CREATE POLICY "Categories are viewable by everyone"
@@ -18,10 +21,21 @@ CREATE POLICY "Categories are viewable by everyone"
     USING (true);
 
 -- RLS Policy: Admin Write (for admin panel)
-CREATE POLICY "Categories can be managed by authenticated users"
-    ON public.categories FOR ALL
+CREATE POLICY "Categories admin insert"
+    ON public.categories FOR INSERT
+    TO authenticated
+    WITH CHECK (auth.role() = 'authenticated');
+
+CREATE POLICY "Categories admin update"
+    ON public.categories FOR UPDATE
+    TO authenticated
     USING (auth.role() = 'authenticated')
     WITH CHECK (auth.role() = 'authenticated');
+
+CREATE POLICY "Categories admin delete"
+    ON public.categories FOR DELETE
+    TO authenticated
+    USING (auth.role() = 'authenticated');
 
 -- Insert default categories
 INSERT INTO public.categories (name, emoji, display_order) VALUES

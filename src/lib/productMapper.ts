@@ -42,6 +42,46 @@ const normalizeTags = (input: string[]): string[] => {
   return Array.from(normalized);
 };
 
+const normalizePlatforms = (input?: unknown): string[] => {
+  if (typeof input === 'string') {
+    return input
+      .split(',')
+      .map((platform) => platform.trim().replace(/\s+/g, ' '))
+      .filter(Boolean);
+  }
+  if (!Array.isArray(input)) return [];
+  const seen = new Set<string>();
+  const values: string[] = [];
+
+  input.forEach((platform) => {
+    if (typeof platform !== 'string') return;
+    const normalized = platform.trim().replace(/\s+/g, ' ');
+    if (!normalized) return;
+    const key = normalized.toLowerCase();
+    if (seen.has(key)) return;
+    seen.add(key);
+    values.push(normalized);
+  });
+
+  return values;
+};
+
+const derivePlatformFromUrl = (url?: string): string | null => {
+  if (!url) return null;
+  try {
+    const { hostname } = new URL(url);
+    const host = hostname.replace(/^www\./, '').toLowerCase();
+    if (!host) return null;
+    const labels = host.split('.');
+    if (labels.length === 0) return null;
+    const base = labels[0];
+    if (!base) return null;
+    return base.charAt(0).toUpperCase() + base.slice(1);
+  } catch {
+    return null;
+  }
+};
+
 // Normalize Supabase rows (snake_case) to our UI-friendly Product shape
 export const mapDbProductToProduct = (item: Record<string, unknown>): Product => {
   const images = Array.isArray(item.images)
@@ -54,6 +94,25 @@ export const mapDbProductToProduct = (item: Record<string, unknown>): Product =>
   const tags = normalizeTags(tagsArray);
   const categoriesArray = Array.isArray(item.categories) ? (item.categories as string[]) : [];
   const categories = categoriesArray.length > 0 ? normalizeTags(categoriesArray) : tags;
+  const affiliateUrl =
+    (item.affiliateUrl as string) ??
+    (item['affiliate_url'] as string) ??
+    '';
+
+  const platformCandidates = [
+    normalizePlatforms(item['affiliate_platforms']),
+    normalizePlatforms(item['affiliateProviders']),
+    normalizePlatforms(item['affiliate_providers']),
+    normalizePlatforms(item['affiliate_provider']),
+  ];
+  const rawPlatforms = platformCandidates.find((platforms) => platforms.length > 0) || [];
+  const fallbackPlatform = derivePlatformFromUrl(affiliateUrl);
+  const affiliatePlatforms =
+    rawPlatforms.length > 0
+      ? rawPlatforms
+      : fallbackPlatform
+        ? [fallbackPlatform]
+        : [];
 
   return {
     id: (item.id as string) ?? '',
@@ -66,10 +125,8 @@ export const mapDbProductToProduct = (item: Record<string, unknown>): Product =>
     images,
     price: typeof item.price === 'number' ? item.price : Number(item.price ?? 0),
     currency: (item.currency as string) ?? 'EUR',
-    affiliateUrl:
-      (item.affiliateUrl as string) ??
-      (item['affiliate_url'] as string) ??
-      '',
+    affiliateUrl,
+    affiliatePlatforms,
     purrCount:
       typeof item['purr_count'] === 'number'
         ? (item['purr_count'] as number)

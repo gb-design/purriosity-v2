@@ -4,13 +4,58 @@ import { Product } from '../types/product';
 import { useCategories } from './useCategories';
 import { mapDbProductToProduct } from '../lib/productMapper';
 
+const normalizeSearchValue = (value: string) =>
+  value
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .toLowerCase()
+    .trim();
+
+const uniqueValues = (values: string[]) => Array.from(new Set(values));
+
 export function useSearch() {
   const { categories } = useCategories();
   const [searchTerm, setSearchTerm] = useState('');
+  const [allProducts, setAllProducts] = useState<Product[]>([]);
   const [results, setResults] = useState<Product[]>([]);
   const [suggestions, setSuggestions] = useState<string[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    let isMounted = true;
+
+    const fetchActiveProducts = async () => {
+      setError(null);
+      try {
+        const { data, error } = await supabase
+          .from('products')
+          .select('*')
+          .eq('is_active', true)
+          .order('created_at', { ascending: false });
+
+        if (error) throw error;
+        if (!isMounted) return;
+
+        const mappedProducts: Product[] = (data || []).map((item: Record<string, unknown>) =>
+          mapDbProductToProduct(item)
+        );
+        setAllProducts(mappedProducts);
+      } catch (err) {
+        console.error('Search preload error:', err);
+        if (isMounted) {
+          setAllProducts([]);
+          setError('Failed to fetch search results.');
+        }
+      }
+    };
+
+    fetchActiveProducts();
+
+    return () => {
+      isMounted = false;
+    };
+  }, []);
 
   useEffect(() => {
     const fetchResults = async () => {
@@ -23,49 +68,41 @@ export function useSearch() {
       setIsLoading(true);
       setError(null);
 
-      // Dynamic Category Suggestions from database
-      const term = searchTerm.toLowerCase();
+      // Dynamic suggestions from categories + existing product tags/categories.
+      const term = normalizeSearchValue(searchTerm);
       const categoryNames = categories.map((cat) => cat.name);
-      const matchingTags = categoryNames
-        .filter((tag) => tag.toLowerCase().includes(term))
+      const productLabels = allProducts.flatMap((product) => [
+        ...(product.categories ?? []),
+        ...(product.tags ?? []),
+      ]);
+      const searchableLabels = uniqueValues([...categoryNames, ...productLabels]);
+      const matchingSuggestions = searchableLabels
+        .filter((tag) => normalizeSearchValue(tag).includes(term))
         .slice(0, 5);
-      setSuggestions(matchingTags);
+      setSuggestions(matchingSuggestions);
 
-      try {
-        // Split search term into individual words
-        const terms = searchTerm.trim().split(/\s+/);
+      const terms = searchTerm
+        .trim()
+        .split(/\s+/)
+        .map(normalizeSearchValue)
+        .filter(Boolean);
 
-        // Build OR conditions for each term
-        // Checks: Title (case-insensitive), Tag (exact), Tag (lower), Tag (capitalized)
-        const orConditions = terms
-          .map((term) => {
-            const lower = term.toLowerCase();
-            const capitalized = term.charAt(0).toUpperCase() + term.slice(1).toLowerCase();
-            return `title.ilike.%${term}%,tags.cs.{${term}},tags.cs.{${lower}},tags.cs.{${capitalized}}`;
-          })
-          .join(',');
+      const filtered = allProducts
+        .filter((product) => {
+          const title = normalizeSearchValue(product.title);
+          const labels = uniqueValues([...(product.categories ?? []), ...(product.tags ?? [])]).map(
+            normalizeSearchValue
+          );
+          return terms.some(
+            (singleTerm) =>
+              title.includes(singleTerm) ||
+              labels.some((label) => label.includes(singleTerm))
+          );
+        })
+        .slice(0, 10);
 
-        const { data, error } = await supabase
-          .from('products')
-          .select('*')
-          .eq('is_active', true)
-          .or(orConditions)
-          .limit(10);
-
-        if (error) {
-          throw error;
-        }
-
-        const mappedProducts: Product[] = (data || []).map((item: Record<string, unknown>) =>
-          mapDbProductToProduct(item)
-        );
-        setResults(mappedProducts);
-      } catch (err) {
-        console.error('Search error:', err);
-        setError('Failed to fetch search results.');
-      } finally {
-        setIsLoading(false);
-      }
+      setResults(filtered);
+      setIsLoading(false);
     };
 
     // Debounce
@@ -74,7 +111,7 @@ export function useSearch() {
     }, 300);
 
     return () => clearTimeout(timeoutId);
-  }, [searchTerm, categories]);
+  }, [searchTerm, categories, allProducts]);
 
   return {
     searchTerm,

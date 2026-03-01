@@ -170,9 +170,21 @@ create policy "Categories are viewable by everyone"
   for select
   using (true);
 
-create policy "Categories admin write"
+create policy "Categories admin insert"
   on public.categories
-  for all
+  for insert
+  to authenticated
+  with check (
+    exists (
+      select 1
+      from public.profiles
+      where profiles.id = (select auth.uid()) and profiles.is_admin = true
+    )
+  );
+
+create policy "Categories admin update"
+  on public.categories
+  for update
   to authenticated
   using (
     exists (
@@ -182,6 +194,18 @@ create policy "Categories admin write"
     )
   )
   with check (
+    exists (
+      select 1
+      from public.profiles
+      where profiles.id = (select auth.uid()) and profiles.is_admin = true
+    )
+  );
+
+create policy "Categories admin delete"
+  on public.categories
+  for delete
+  to authenticated
+  using (
     exists (
       select 1
       from public.profiles

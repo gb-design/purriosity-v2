@@ -26,26 +26,54 @@ alter table public.categories enable row level security;
 drop policy if exists "Categories are viewable by everyone" on public.categories;
 drop policy if exists "Categories can be managed by authenticated users" on public.categories;
 drop policy if exists "Categories admin write" on public.categories;
+drop policy if exists "Categories admin insert" on public.categories;
+drop policy if exists "Categories admin update" on public.categories;
+drop policy if exists "Categories admin delete" on public.categories;
 
 create policy "Categories are viewable by everyone"
   on public.categories
   for select
   using (true);
 
-create policy "Categories admin write"
+create policy "Categories admin insert"
   on public.categories
-  for all
+  for insert
+  to authenticated
+  with check (
+    exists (
+      select 1
+      from public.profiles
+      where profiles.id = (select auth.uid()) and profiles.is_admin = true
+    )
+  );
+
+create policy "Categories admin update"
+  on public.categories
+  for update
+  to authenticated
   using (
     exists (
       select 1
       from public.profiles
-      where profiles.id = auth.uid() and profiles.is_admin = true
+      where profiles.id = (select auth.uid()) and profiles.is_admin = true
     )
   )
   with check (
     exists (
       select 1
       from public.profiles
-      where profiles.id = auth.uid() and profiles.is_admin = true
+      where profiles.id = (select auth.uid()) and profiles.is_admin = true
+    )
+  );
+
+create policy "Categories admin delete"
+  on public.categories
+  for delete
+  to authenticated
+  using (
+    exists (
+      select 1
+      from public.profiles
+      where profiles.id = (select auth.uid()) and profiles.is_admin = true
     )
   );

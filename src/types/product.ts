@@ -7,6 +7,7 @@ export interface Product {
   price: number;
   currency: string;
   affiliateUrl: string;
+  affiliatePlatforms?: string[];
   purrCount: number;
   viewCount: number;
   tags: string[];

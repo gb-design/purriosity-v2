@@ -75,6 +75,14 @@ const buildGalleryImages = (product: Product) => {
   return candidates.slice(0, 5);
 };
 
+const formatPlatformName = (platform: string) => {
+  const value = platform.trim().replace(/\s+/g, ' ');
+  if (!value) return '';
+  return value.replace(/(^|[\s-])([a-zäöüß])/g, (_m, boundary: string, char: string) =>
+    `${boundary}${char.toUpperCase()}`
+  );
+};
+
 export default function ProductDetailView({
     product,
     isModal = false,
@@ -91,6 +99,9 @@ export default function ProductDetailView({
   const [activeImage, setActiveImage] = useState<string>(buildGalleryImages(product)[0]);
   const categoryLabels = getDisplayLabels(product.categories);
   const tagLabels = getDisplayLabels(product.tags).slice(0, 10);
+  const platformLabels = (product.affiliatePlatforms || [])
+    .map(formatPlatformName)
+    .filter(Boolean);
   const [shareMenuOpen, setShareMenuOpen] = useState(false);
   const [optionsMenuOpen, setOptionsMenuOpen] = useState(false);
   const shareButtonRef = useRef<HTMLButtonElement>(null);
@@ -497,6 +508,18 @@ export default function ProductDetailView({
 
             {/* Price & Affiliate */}
             <div className="bg-secondary/50 p-6 rounded-2xl border border-border/50 text-center space-y-4">
+              {platformLabels.length > 0 && (
+                <div className="flex flex-wrap items-center justify-center gap-2">
+                  {platformLabels.map((platform) => (
+                    <span
+                      key={platform}
+                      className="px-3 py-1 rounded-full bg-background border border-border text-xs font-semibold tracking-wide text-foreground"
+                    >
+                      {platform}
+                    </span>
+                  ))}
+                </div>
+              )}
               <p className="text-sm text-text-secondary">
                 Klick dich direkt zum Anbieter und entdecke alle Details rund um dieses Produkt.
               </p>
@@ -509,7 +532,6 @@ export default function ProductDetailView({
                 Zum Produkt
                 <ExternalLink className="w-5 h-5" />
               </a>
-              <p className="text-xs text-text-secondary">* Enthält Affiliate-Links</p>
             </div>
           </div>
 

@@ -6,8 +6,10 @@ create table if not exists public.product_saves (
     user_id uuid references auth.users(id) on delete cascade,
     product_id uuid references public.products(id) on delete cascade,
     created_at timestamptz not null default now(),
-    unique (user_id, product_id)
+    unique (product_id, user_id)
 );
+
+create index if not exists idx_product_saves_user_id on public.product_saves(user_id);
 
 alter table public.product_saves enable row level security;
 

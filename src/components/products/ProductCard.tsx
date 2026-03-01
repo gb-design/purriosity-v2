@@ -24,6 +24,10 @@ export default function ProductCard({ product, productIds, productIndex }: Produ
     const { isPurred, purrCount, togglePurr } = useProductPurr(product.id, product.purrCount);
     const { isSaved, toggleSave } = useSavedProducts();
     const saved = isSaved(product.id);
+    const platforms = (product.affiliatePlatforms || [])
+      .map((platform) => platform.trim())
+      .filter(Boolean)
+      .slice(0, 2);
 
     const handlePurr = async (e: React.MouseEvent) => {
         e.preventDefault();
@@ -96,6 +100,19 @@ export default function ProductCard({ product, productIds, productIndex }: Produ
                 </span>
               ))}
           </div>
+
+          {platforms.length > 0 && (
+            <div className="flex flex-wrap gap-1.5 mb-3">
+              {platforms.map((platform) => (
+                <span
+                  key={`${product.id}-${platform}`}
+                  className="text-[10px] uppercase tracking-wider px-2 py-0.5 rounded-full bg-primary/10 border border-primary/30 text-primary font-semibold"
+                >
+                  {platform}
+                </span>
+              ))}
+            </div>
+          )}
 
           <div className="mt-4 flex items-center justify-end">
             <button

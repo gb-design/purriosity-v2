@@ -1,7 +1,8 @@
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo, useRef, useCallback } from 'react';
 import AdminLayout from '../../components/admin/AdminLayout';
 import { supabase } from '../../lib/supabase';
 import SimpleMDE from 'react-simplemde-editor';
+import EasyMDE from 'easymde';
 import 'easymde/dist/easymde.min.css';
 import {
   Plus,
@@ -16,6 +17,7 @@ import {
   User as UserIcon,
   Image as ImageIcon,
   Upload,
+  Images,
 } from 'lucide-react';
 
 interface BlogPost {
@@ -31,13 +33,17 @@ interface BlogPost {
 }
 
 export default function BlogManagement() {
+  const MAX_IMAGE_SIZE_MB = 8;
   const [posts, setPosts] = useState<BlogPost[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [editingPost, setEditingPost] = useState<BlogPost | null>(null);
   const [isSaving, setIsSaving] = useState(false);
-  const [isUploading, setIsUploading] = useState(false);
+  const [isCoverUploading, setIsCoverUploading] = useState(false);
+  const [isInlineUploading, setIsInlineUploading] = useState(false);
+  const inlineImageInputRef = useRef<HTMLInputElement | null>(null);
+  const mdeInstanceRef = useRef<EasyMDE | null>(null);
 
   // Form State
   const [formData, setFormData] = useState<Partial<BlogPost>>({
@@ -54,6 +60,37 @@ export default function BlogManagement() {
   useEffect(() => {
     fetchPosts();
   }, []);
+
+  const getStoragePathFromPublicUrl = (url: string): string | null => {
+    try {
+      const parsed = new URL(url);
+      const marker = '/storage/v1/object/public/media/';
+      const markerIndex = parsed.pathname.indexOf(marker);
+      if (markerIndex === -1) return null;
+      return decodeURIComponent(parsed.pathname.slice(markerIndex + marker.length));
+    } catch {
+      return null;
+    }
+  };
+
+  const extractBlogImagePathsFromMarkdown = (markdown: string): string[] => {
+    const imagePattern = /!\[[^\]]*]\(([^)\s]+)(?:\s+"[^"]*")?\)/g;
+    const paths = new Set<string>();
+    let match: RegExpExecArray | null = imagePattern.exec(markdown);
+
+    while (match) {
+      const rawUrl = match[1]?.trim().replace(/^<|>$/g, '');
+      if (rawUrl) {
+        const path = getStoragePathFromPublicUrl(rawUrl);
+        if (path?.startsWith('blog/')) {
+          paths.add(path);
+        }
+      }
+      match = imagePattern.exec(markdown);
+    }
+
+    return [...paths];
+  };
 
   const fetchPosts = async () => {
     setIsLoading(true);
@@ -113,11 +150,55 @@ export default function BlogManagement() {
       };
 
       if (editingPost) {
+        const previousBlogImagePaths = extractBlogImagePathsFromMarkdown(editingPost.content || '');
+        const nextBlogImagePaths = extractBlogImagePathsFromMarkdown(finalData.content || '');
+        const previousInlineImagePaths = previousBlogImagePaths.filter((path) =>
+          path.startsWith('blog/inline/')
+        );
+        const nextInlineImagePaths = nextBlogImagePaths.filter((path) =>
+          path.startsWith('blog/inline/')
+        );
+        const nextInlineSet = new Set(nextInlineImagePaths);
+        const removedInlineImagePaths = previousInlineImagePaths.filter(
+          (path) => !nextInlineSet.has(path)
+        );
+
+        const previousCoverPath = getStoragePathFromPublicUrl(editingPost.cover_image || '');
+        const nextCoverPath = getStoragePathFromPublicUrl(finalData.cover_image || '');
+        const shouldDeletePreviousCover =
+          !!previousCoverPath &&
+          previousCoverPath.startsWith('blog/cover/') &&
+          previousCoverPath !== nextCoverPath;
+
         const { error } = await supabase
           .from('blog_posts')
           .update(finalData)
           .eq('id', editingPost.id);
         if (error) throw error;
+
+        const retainedBlogPaths = new Set(nextBlogImagePaths);
+        if (nextCoverPath?.startsWith('blog/cover/')) {
+          retainedBlogPaths.add(nextCoverPath);
+        }
+
+        const pathsToDelete = new Set<string>();
+        removedInlineImagePaths.forEach((path) => {
+          if (!retainedBlogPaths.has(path)) {
+            pathsToDelete.add(path);
+          }
+        });
+        if (shouldDeletePreviousCover && previousCoverPath && !retainedBlogPaths.has(previousCoverPath)) {
+          pathsToDelete.add(previousCoverPath);
+        }
+
+        if (pathsToDelete.size > 0) {
+          const { error: removeError } = await supabase.storage
+            .from('media')
+            .remove([...pathsToDelete]);
+          if (removeError) {
+            console.error('Error deleting removed blog images:', removeError);
+          }
+        }
       } else {
         const { error } = await supabase.from('blog_posts').insert([finalData]);
         if (error) throw error;
@@ -134,10 +215,30 @@ export default function BlogManagement() {
 
   const handleDelete = async (id: string) => {
     if (!confirm('Bist du sicher, dass du diesen Beitrag löschen möchtest?')) return;
+    const postToDelete = posts.find((p) => p.id === id);
 
     try {
       const { error } = await supabase.from('blog_posts').delete().eq('id', id);
       if (error) throw error;
+
+      if (postToDelete) {
+        const inlinePaths = extractBlogImagePathsFromMarkdown(postToDelete.content || '');
+        const coverPath = getStoragePathFromPublicUrl(postToDelete.cover_image || '');
+        const pathsToDelete = new Set<string>(inlinePaths);
+        if (coverPath?.startsWith('blog/cover/')) {
+          pathsToDelete.add(coverPath);
+        }
+
+        if (pathsToDelete.size > 0) {
+          const { error: removeError } = await supabase.storage
+            .from('media')
+            .remove([...pathsToDelete]);
+          if (removeError) {
+            console.error('Error deleting blog images after post delete:', removeError);
+          }
+        }
+      }
+
       setPosts(posts.filter((p) => p.id !== id));
     } catch (error) {
       console.error('Error deleting post:', error);
@@ -145,30 +246,110 @@ export default function BlogManagement() {
     }
   };
 
+  const uploadBlogImage = async (
+    file: File,
+    area: 'cover' | 'inline'
+  ): Promise<string> => {
+    const fileExt = file.name.split('.').pop()?.toLowerCase() || 'jpg';
+    const sanitizedTitle = (formData.slug || formData.title || 'magazin-post')
+      .toLowerCase()
+      .replace(/\s+/g, '-')
+      .replace(/[^\w-]/g, '')
+      .slice(0, 60);
+    const fileName = `${Date.now()}-${crypto.randomUUID()}.${fileExt}`;
+    const filePath = `blog/${area}/${sanitizedTitle}/${fileName}`;
+
+    const { error: uploadError } = await supabase.storage
+      .from('media')
+      .upload(filePath, file, {
+        cacheControl: '31536000',
+        upsert: false,
+      });
+
+    if (uploadError) throw uploadError;
+
+    const {
+      data: { publicUrl },
+    } = supabase.storage.from('media').getPublicUrl(filePath);
+
+    return publicUrl;
+  };
+
+  const validateImageFile = (file: File): string | null => {
+    const allowedTypes = ['image/jpeg', 'image/png', 'image/webp', 'image/gif', 'image/avif'];
+    if (!allowedTypes.includes(file.type)) {
+      return 'Bitte lade ein JPG, PNG, WEBP, GIF oder AVIF Bild hoch.';
+    }
+
+    const maxBytes = MAX_IMAGE_SIZE_MB * 1024 * 1024;
+    if (file.size > maxBytes) {
+      return `Das Bild ist zu groß. Maximal erlaubt: ${MAX_IMAGE_SIZE_MB}MB.`;
+    }
+
+    return null;
+  };
+
+  const insertMarkdownAtCursor = useCallback((markdown: string) => {
+    const codeMirror = mdeInstanceRef.current?.codemirror;
+    if (!codeMirror) {
+      setFormData((prev) => ({ ...prev, content: `${prev.content || ''}\n\n${markdown}\n\n` }));
+      return;
+    }
+
+    const doc = codeMirror.getDoc();
+    const cursor = doc.getCursor();
+    const insertion = cursor.ch === 0 ? `${markdown}\n\n` : `\n\n${markdown}\n\n`;
+    doc.replaceRange(insertion, cursor);
+    codeMirror.focus();
+  }, []);
+
+  const triggerInlineImagePicker = useCallback(() => {
+    inlineImageInputRef.current?.click();
+  }, []);
+
   const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
 
-    setIsUploading(true);
+    const validationError = validateImageFile(file);
+    if (validationError) {
+      alert(validationError);
+      return;
+    }
+
+    setIsCoverUploading(true);
     try {
-      const fileExt = file.name.split('.').pop();
-      const fileName = `${Math.random()}.${fileExt}`;
-      const filePath = `blog/${fileName}`;
-
-      const { error: uploadError } = await supabase.storage.from('media').upload(filePath, file);
-
-      if (uploadError) throw uploadError;
-
-      const {
-        data: { publicUrl },
-      } = supabase.storage.from('media').getPublicUrl(filePath);
-
-      setFormData({ ...formData, cover_image: publicUrl });
+      const publicUrl = await uploadBlogImage(file, 'cover');
+      setFormData((prev) => ({ ...prev, cover_image: publicUrl }));
     } catch (error) {
       console.error('Error uploading image:', error);
       alert('Fehler beim Bild-Upload.');
     } finally {
-      setIsUploading(false);
+      setIsCoverUploading(false);
+    }
+  };
+
+  const handleInlineImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    e.target.value = '';
+    if (!file) return;
+
+    const validationError = validateImageFile(file);
+    if (validationError) {
+      alert(validationError);
+      return;
+    }
+
+    setIsInlineUploading(true);
+    try {
+      const publicUrl = await uploadBlogImage(file, 'inline');
+      const altText = file.name.replace(/\.[^/.]+$/, '').replace(/[-_]+/g, ' ').trim() || 'Bild';
+      insertMarkdownAtCursor(`![${altText}](${publicUrl})`);
+    } catch (error) {
+      console.error('Error uploading inline image:', error);
+      alert('Fehler beim Bild-Upload in den Artikel.');
+    } finally {
+      setIsInlineUploading(false);
     }
   };
 
@@ -334,11 +515,40 @@ export default function BlogManagement() {
 
                   <div>
                     <label className="block text-sm font-bold mb-3">Inhalt (Markdown)</label>
+                    <input
+                      ref={inlineImageInputRef}
+                      type="file"
+                      className="hidden"
+                      accept="image/*"
+                      onChange={handleInlineImageUpload}
+                      disabled={isInlineUploading}
+                    />
+                    <div className="mb-3 flex flex-wrap items-center gap-3">
+                      <button
+                        type="button"
+                        onClick={triggerInlineImagePicker}
+                        disabled={isInlineUploading}
+                        className="inline-flex items-center gap-2 px-4 py-2 rounded-xl border border-border bg-muted hover:bg-muted/80 transition-colors disabled:opacity-60"
+                      >
+                        {isInlineUploading ? (
+                          <Loader2 className="h-4 w-4 animate-spin" />
+                        ) : (
+                          <Images className="h-4 w-4" />
+                        )}
+                        Bild in Artikel einfügen
+                      </button>
+                      <p className="text-xs text-muted-foreground">
+                        Upload platziert das Bild direkt an der Cursorposition (max. {MAX_IMAGE_SIZE_MB}MB).
+                      </p>
+                    </div>
                     <div className="prose-editor">
                       <SimpleMDE
                         value={formData.content}
                         onChange={(val) => setFormData({ ...formData, content: val })}
                         options={mdeOptions}
+                        getMdeInstance={(instance) => {
+                          mdeInstanceRef.current = instance;
+                        }}
                       />
                     </div>
                   </div>
@@ -368,9 +578,9 @@ export default function BlogManagement() {
                             className="hidden"
                             accept="image/*"
                             onChange={handleImageUpload}
-                            disabled={isUploading}
+                            disabled={isCoverUploading}
                           />
-                          {isUploading ? (
+                          {isCoverUploading ? (
                             <Loader2 className="h-8 w-8 animate-spin" />
                           ) : (
                             <Upload className="h-8 w-8" />
@@ -459,7 +669,7 @@ export default function BlogManagement() {
                 </button>
                 <button
                   type="submit"
-                  disabled={isSaving || isUploading}
+                  disabled={isSaving || isCoverUploading || isInlineUploading}
                   className="bg-primary text-primary-foreground px-12 py-4 rounded-2xl font-bold flex items-center gap-3 hover:bg-primary/90 transition-all shadow-xl shadow-primary/30 disabled:opacity-50"
                 >
                   {isSaving ? (

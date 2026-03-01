@@ -32,6 +32,7 @@ interface Product {
   short_description: string;
   images: string[];
   affiliate_url: string;
+  affiliate_platforms: string[];
   tags: string[];
   categories: string[];
   featured_image_url: string;
@@ -75,6 +76,14 @@ const mergeTagValues = (current: string[] = [], nextTags: string[]) => {
 const removeTagValue = (current: string[] = [], target: string) =>
   current.filter((tag) => tagKey(tag) !== tagKey(target));
 
+const normalizePlatformInput = (platform: string) => platform.trim().replace(/\s+/g, ' ');
+
+const platformKey = (platform: string) =>
+  normalizePlatformInput(platform).toLocaleLowerCase(TAG_LOCALE);
+
+const removePlatformValue = (current: string[] = [], target: string) =>
+  current.filter((platform) => platformKey(platform) !== platformKey(target));
+
 export default function ProductManagement() {
   const [products, setProducts] = useState<Product[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -95,6 +104,7 @@ export default function ProductManagement() {
     description: '',
     short_description: '',
     affiliate_url: '',
+    affiliate_platforms: [],
     tags: [],
     categories: [],
     images: [],
@@ -170,6 +180,8 @@ export default function ProductManagement() {
       setFormData({
         ...product,
         tags: product.tags?.map((tag) => sanitizeTagInput(tag)) || [],
+        affiliate_platforms:
+          product.affiliate_platforms?.map((platform) => normalizePlatformInput(platform)) || [],
       });
     } else {
       setEditingProduct(null);
@@ -178,6 +190,7 @@ export default function ProductManagement() {
         description: '',
         short_description: '',
         affiliate_url: '',
+        affiliate_platforms: [],
         tags: [],
         categories: [],
         images: [],
@@ -538,6 +551,51 @@ export default function ProductManagement() {
                       className="w-full px-4 py-3 bg-muted border border-border rounded-xl focus:ring-2 focus:ring-primary/50 outline-none transition-all font-mono text-sm"
                       placeholder="https://amazon.de/..."
                     />
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-bold mb-2">Verfügbar bei</label>
+                    <input
+                      type="text"
+                      value={(formData.affiliate_platforms || []).join(', ')}
+                      onChange={(e) => {
+                        const nextPlatforms = e.target.value
+                          .split(',')
+                          .map((platform) => normalizePlatformInput(platform))
+                          .filter(Boolean);
+                        setFormData({ ...formData, affiliate_platforms: nextPlatforms });
+                      }}
+                      className="w-full px-4 py-3 bg-muted border border-border rounded-xl focus:ring-2 focus:ring-primary/50 outline-none transition-all text-sm"
+                      placeholder="Amazon, Temu, Etsy, Zooplus..."
+                    />
+                    <p className="text-xs text-muted-foreground mt-1">
+                      Mehrere Plattformen mit Komma trennen.
+                    </p>
+                    {formData.affiliate_platforms && formData.affiliate_platforms.length > 0 && (
+                      <div className="mt-2 flex flex-wrap gap-2">
+                        {formData.affiliate_platforms.map((platform) => (
+                          <span
+                            key={platform}
+                            className="bg-primary/10 text-primary text-xs px-2.5 py-1 rounded-md flex items-center gap-1.5 border border-primary/30"
+                          >
+                            {platform}
+                            <button
+                              type="button"
+                              onClick={() => {
+                                const currentPlatforms = formData.affiliate_platforms || [];
+                                const nextPlatforms = removePlatformValue(currentPlatforms, platform);
+                                if (nextPlatforms.length !== currentPlatforms.length) {
+                                  setFormData({ ...formData, affiliate_platforms: nextPlatforms });
+                                }
+                              }}
+                              className="hover:text-destructive"
+                            >
+                              <X className="h-3 w-3" />
+                            </button>
+                          </span>
+                        ))}
+                      </div>
+                    )}
                   </div>
 
                   <div>

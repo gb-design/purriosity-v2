@@ -12,7 +12,15 @@ const clamp = (value: number, min: number, max: number) => Math.min(Math.max(val
 
 export default function ProductCarousel({ products }: ProductCarouselProps) {
   const containerRef = useRef<HTMLDivElement>(null);
-  const pointerState = useRef({ isDragging: false, startX: 0, scrollLeft: 0, pointerId: -1 });
+  const pointerState = useRef({
+    isPointerDown: false,
+    isDragging: false,
+    startX: 0,
+    scrollLeft: 0,
+    pointerId: -1,
+    hasCapture: false,
+    suppressClick: false,
+  });
   const [itemsPerView, setItemsPerView] = useState(3);
   const [canScrollLeft, setCanScrollLeft] = useState(false);
   const [canScrollRight, setCanScrollRight] = useState(false);
@@ -57,21 +65,44 @@ export default function ProductCarousel({ products }: ProductCarouselProps) {
   const handlePointerDown = (event: PointerEvent<HTMLDivElement>) => {
     const node = containerRef.current;
     if (!node) return;
+    const target = event.target as HTMLElement | null;
+    if (target?.closest('a, button, input, textarea, select, label, [role="button"]')) {
+      pointerState.current = {
+        ...pointerState.current,
+        isPointerDown: false,
+        isDragging: false,
+        pointerId: -1,
+        hasCapture: false,
+      };
+      return;
+    }
+
     pointerState.current = {
-      isDragging: true,
+      ...pointerState.current,
+      isPointerDown: true,
+      isDragging: false,
       startX: event.clientX,
       scrollLeft: node.scrollLeft,
       pointerId: event.pointerId,
+      hasCapture: false,
     };
-    event.preventDefault();
-    node.setPointerCapture(event.pointerId);
   };
 
   const handlePointerMove = (event: PointerEvent<HTMLDivElement>) => {
     const node = containerRef.current;
     const state = pointerState.current;
-    if (!node || !state.isDragging) return;
+    if (!node || !state.isPointerDown) return;
     const delta = event.clientX - state.startX;
+    const dragThreshold = 6;
+    if (!state.isDragging && Math.abs(delta) < dragThreshold) return;
+    if (!state.isDragging) {
+      state.isDragging = true;
+    }
+    if (!state.hasCapture) {
+      node.setPointerCapture(event.pointerId);
+      state.hasCapture = true;
+    }
+    event.preventDefault();
     const next = state.scrollLeft - delta;
     const maxScroll = node.scrollWidth - node.clientWidth;
     node.scrollLeft = clamp(next, 0, maxScroll);
@@ -80,10 +111,26 @@ export default function ProductCarousel({ products }: ProductCarouselProps) {
   const stopDragging = (event: PointerEvent<HTMLDivElement>) => {
     const node = containerRef.current;
     const state = pointerState.current;
-    if (!node || !state.isDragging) return;
-    state.isDragging = false;
-    if (state.pointerId === event.pointerId) {
+    if (!node || !state.isPointerDown) return;
+
+    if (state.hasCapture && state.pointerId === event.pointerId) {
       node.releasePointerCapture(event.pointerId);
+    }
+
+    const shouldSuppressClick = state.isDragging;
+    pointerState.current = {
+      ...pointerState.current,
+      isPointerDown: false,
+      isDragging: false,
+      pointerId: -1,
+      hasCapture: false,
+      suppressClick: shouldSuppressClick,
+    };
+
+    if (shouldSuppressClick) {
+      window.setTimeout(() => {
+        pointerState.current.suppressClick = false;
+      }, 0);
     }
   };
 
@@ -151,6 +198,12 @@ export default function ProductCarousel({ products }: ProductCarouselProps) {
           onPointerUp={stopDragging}
           onPointerLeave={stopDragging}
           onPointerCancel={handlePointerCancel}
+          onClickCapture={(event) => {
+            if (pointerState.current.suppressClick) {
+              event.preventDefault();
+              event.stopPropagation();
+            }
+          }}
         >
           {products.map((product, index) => (
             <div key={product.id} className="flex-shrink-0" style={cardStyle}>
