@@ -14,7 +14,7 @@ create policy "Admins can upload media"
     bucket_id = 'media' AND
     exists (
       select 1 from public.profiles
-      where profiles.id = auth.uid() and profiles.is_admin = true
+      where profiles.id = (select auth.uid()) and profiles.is_admin = true
     )
   );
 
@@ -24,7 +24,7 @@ create policy "Admins can delete media"
     bucket_id = 'media' AND
     exists (
       select 1 from public.profiles
-      where profiles.id = auth.uid() and profiles.is_admin = true
+      where profiles.id = (select auth.uid()) and profiles.is_admin = true
     )
   );
 

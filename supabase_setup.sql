@@ -10,7 +10,6 @@ create table public.products (
   affiliate_url text,
   purr_count integer default 0,
   view_count integer default 0,
-  star_rating numeric default 0,
   tags text[] default '{}',
   categories text[] default '{}',
   is_active boolean default true,

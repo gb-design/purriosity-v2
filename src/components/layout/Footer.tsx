@@ -8,7 +8,11 @@ export default function Footer() {
                 <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
                     {/* Brand */}
                     <div className="col-span-1 md:col-span-2">
-                        <h2 className="font-display text-2xl font-bold text-primary mb-4">Purriosity</h2>
+                        <img
+                            src="/purriosity_logo.svg"
+                            alt="Purriosity"
+                            className="h-10 w-auto mb-4"
+                        />
                         <p className="text-text-secondary text-sm mb-4">
                             Die verrückteste Fundgrube für Katzenliebhaber. Kuratierte Produkte, die du
                             nirgendwo anders findest.

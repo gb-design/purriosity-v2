@@ -104,10 +104,10 @@ create policy "likes readable by everyone"
 
 create policy "user can like"
     on public.product_likes for insert
-    with check (auth.uid() = user_id);
+    with check ((select auth.uid()) = user_id);
 
 create policy "user can unlike"
     on public.product_likes for delete
-    using (auth.uid() = user_id);
+    using ((select auth.uid()) = user_id);
 
 -- Done! Now product_likes tracks each heart and profiles.purr_given_count keeps totals per user.

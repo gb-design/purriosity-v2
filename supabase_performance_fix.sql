@@ -1,6 +1,14 @@
 -- Supabase performance and policy hardening fixes for Purriosity
 -- Run this once in Supabase SQL Editor.
 
+-- 0) Ensure products activity flag exists (required by frontend filters)
+alter table public.products
+  add column if not exists is_active boolean default true;
+
+update public.products
+set is_active = true
+where is_active is null;
+
 -- 1) Foreign key helper indexes (fixes "Unindexed foreign keys" warnings)
 create index if not exists idx_product_likes_user_id on public.product_likes(user_id);
 create index if not exists idx_product_likes_product_id on public.product_likes(product_id);

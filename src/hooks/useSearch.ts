@@ -47,9 +47,7 @@ export function useSearch() {
 
         const { data, error } = await supabase
           .from('products')
-          .select(
-            'id,title,description,short_description,images,price,currency,affiliate_url,purr_count,view_count,tags,categories,created_at,is_active'
-          )
+          .select('*')
           .eq('is_active', true)
           .or(orConditions)
           .limit(10);

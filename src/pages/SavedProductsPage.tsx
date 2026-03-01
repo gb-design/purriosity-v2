@@ -34,9 +34,7 @@ export default function SavedProductsPage() {
       setIsLoading(true);
       const { data, error } = await supabase
         .from('product_saves')
-        .select(
-          'product:products(id,title,description,short_description,images,price,currency,affiliate_url,purr_count,view_count,tags,categories,created_at,is_active)'
-        )
+        .select('product:products(*)')
         .eq('user_id', user.id)
         .order('created_at', { ascending: false });
 

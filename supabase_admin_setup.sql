@@ -16,7 +16,8 @@ create policy "Public profiles are viewable by everyone"
 
 create policy "Users can update own profile"
   on public.profiles for update
-  using ( auth.uid() = id );
+  using ( (select auth.uid()) = id )
+  with check ( (select auth.uid()) = id );
 
 -- Trigger to create profile on signup
 create or replace function public.handle_new_user()
@@ -26,7 +27,7 @@ begin
   values (new.id, new.email, false); -- Default: not admin
   return new;
 end;
-$$ language plpgsql security definer;
+$$ language plpgsql security definer set search_path = public;
 
 create trigger on_auth_user_created
   after insert on auth.users
@@ -39,7 +40,7 @@ create policy "Admins can insert products"
   with check (
     exists (
       select 1 from public.profiles
-      where profiles.id = auth.uid() and profiles.is_admin = true
+      where profiles.id = (select auth.uid()) and profiles.is_admin = true
     )
   );
 
@@ -49,7 +50,7 @@ create policy "Admins can update products"
   using (
     exists (
       select 1 from public.profiles
-      where profiles.id = auth.uid() and profiles.is_admin = true
+      where profiles.id = (select auth.uid()) and profiles.is_admin = true
     )
   );
 
@@ -59,7 +60,7 @@ create policy "Admins can delete products"
   using (
     exists (
       select 1 from public.profiles
-      where profiles.id = auth.uid() and profiles.is_admin = true
+      where profiles.id = (select auth.uid()) and profiles.is_admin = true
     )
   );
 
@@ -70,7 +71,7 @@ create policy "Admins can insert blog_posts"
   with check (
     exists (
       select 1 from public.profiles
-      where profiles.id = auth.uid() and profiles.is_admin = true
+      where profiles.id = (select auth.uid()) and profiles.is_admin = true
     )
   );
 
@@ -80,7 +81,7 @@ create policy "Admins can update blog_posts"
   using (
     exists (
       select 1 from public.profiles
-      where profiles.id = auth.uid() and profiles.is_admin = true
+      where profiles.id = (select auth.uid()) and profiles.is_admin = true
     )
   );
 
@@ -90,6 +91,6 @@ create policy "Admins can delete blog_posts"
   using (
     exists (
       select 1 from public.profiles
-      where profiles.id = auth.uid() and profiles.is_admin = true
+      where profiles.id = (select auth.uid()) and profiles.is_admin = true
     )
   );
