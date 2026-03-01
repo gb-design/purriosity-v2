@@ -23,7 +23,7 @@ export default function Blog() {
             try {
                 const { data, error } = await supabase
                     .from('blog_posts')
-                    .select('*')
+                    .select('id,title,slug,excerpt,cover_image,author_name,tags,published_at')
                     .order('published_at', { ascending: false });
 
                 if (error) throw error;

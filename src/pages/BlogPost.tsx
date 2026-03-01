@@ -26,7 +26,7 @@ export default function BlogPost() {
             try {
                 const { data, error } = await supabase
                     .from('blog_posts')
-                    .select('*')
+                    .select('id,title,content,cover_image,author_name,tags,published_at')
                     .eq('slug', slug)
                     .single();
 

@@ -123,7 +123,9 @@ export default function AdminDashboard() {
                 if (productsResponse.error) throw productsResponse.error;
                 if (adminResponse.error) throw adminResponse.error;
 
-                const mappedProducts = (productsResponse.data ?? []).map((row) => mapDbProductToProduct(row));
+                const mappedProducts = (productsResponse.data ?? []).map((row: Record<string, unknown>) =>
+                    mapDbProductToProduct(row)
+                );
                 setProducts(mappedProducts);
                 setAdminUserCount(adminResponse.count ?? 0);
             } catch (error) {

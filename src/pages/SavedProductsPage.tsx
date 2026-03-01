@@ -34,7 +34,9 @@ export default function SavedProductsPage() {
       setIsLoading(true);
       const { data, error } = await supabase
         .from('product_saves')
-        .select('product:products(*)')
+        .select(
+          'product:products(id,title,description,short_description,images,price,currency,affiliate_url,purr_count,view_count,tags,categories,created_at,is_active)'
+        )
         .eq('user_id', user.id)
         .order('created_at', { ascending: false });
 
@@ -42,7 +44,8 @@ export default function SavedProductsPage() {
         const mapped = (data as { product: Record<string, unknown> }[])
           .map((entry) => entry.product)
           .filter((p): p is Record<string, unknown> => Boolean(p))
-          .map((p) => mapDbProductToProduct(p));
+          .map((p) => mapDbProductToProduct(p))
+          .filter((product) => product.isActive !== false);
         setSavedProducts(mapped);
       }
       setIsLoading(false);

@@ -90,13 +90,7 @@ export const useProductPurr = (productId: string, initialCount: number) => {
       return 'error';
     }
 
-    const { data: latestData, error: latestError } = await supabase
-      .from('products')
-      .select('purr_count')
-      .eq('id', productId)
-      .single();
-
-    const latest = !latestError && latestData ? latestData.purr_count ?? 0 : Math.max(0, purrCount + (nextLiked ? 1 : -1));
+    const latest = Math.max(0, purrCount + (nextLiked ? 1 : -1));
     setPurrCount(latest);
     emitEvent({ productId, liked: nextLiked, count: latest });
     setIsMutating(false);

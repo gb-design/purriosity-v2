@@ -23,8 +23,11 @@ export default function ProductDetail() {
             try {
                 const { data, error } = await supabase
                     .from('products')
-                    .select('*')
+                    .select(
+                        'id,title,description,short_description,images,price,currency,affiliate_url,purr_count,view_count,tags,categories,created_at,is_active'
+                    )
                     .eq('id', id)
+                    .eq('is_active', true)
                     .single();
 
                 if (error) throw error;

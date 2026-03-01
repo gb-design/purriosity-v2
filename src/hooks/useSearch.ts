@@ -47,7 +47,10 @@ export function useSearch() {
 
         const { data, error } = await supabase
           .from('products')
-          .select('*')
+          .select(
+            'id,title,description,short_description,images,price,currency,affiliate_url,purr_count,view_count,tags,categories,created_at,is_active'
+          )
+          .eq('is_active', true)
           .or(orConditions)
           .limit(10);
 
@@ -58,9 +61,7 @@ export function useSearch() {
         const mappedProducts: Product[] = (data || []).map((item: Record<string, unknown>) =>
           mapDbProductToProduct(item)
         );
-        const activeProducts = mappedProducts.filter((product) => product.isActive !== false);
-
-        setResults(activeProducts);
+        setResults(mappedProducts);
       } catch (err) {
         console.error('Search error:', err);
         setError('Failed to fetch search results.');

@@ -284,14 +284,14 @@ export default function ProductDetailView({
         {/* Left Column: Image */}
         <div className={`flex flex-col ${isModal ? 'md:w-1/2' : 'w-full md:sticky md:top-20'}`}>
           <div
-            className={`relative bg-black/5 flex items-center justify-center rounded-2xl overflow-hidden ${
-              isModal ? 'min-h-[420px] max-h-[520px]' : 'w-full md:h-[70vh]'
+            className={`relative bg-black/5 flex items-center justify-center rounded-[28px] sm:rounded-3xl overflow-hidden ${
+              isModal ? 'min-h-[320px] sm:min-h-[420px] max-h-[520px]' : 'w-full md:h-[70vh]'
             }`}
           >
             {isModal && (
               <button
                 onClick={() => navigate(-1)}
-                className="absolute top-3 right-3 z-10 p-2 bg-black/40 hover:bg-black/60 text-white rounded-full backdrop-blur transition-colors md:hidden"
+                className="fixed top-4 right-4 z-[120] p-2 bg-black/50 text-white rounded-full backdrop-blur transition-colors"
               >
                 <X className="w-6 h-6" />
               </button>
@@ -305,7 +305,7 @@ export default function ProductDetailView({
           </div>
 
           {galleryImages.length > 1 && (
-            <div className="grid grid-cols-5 gap-3 mt-2">
+            <div className={`grid grid-cols-5 gap-3 ${isModal ? 'mt-5 md:mt-8' : 'mt-3'}`}>
               {galleryImages.map((img, index) => (
                 <button
                   key={`${img}-${index}`}
@@ -313,13 +313,13 @@ export default function ProductDetailView({
                   className={`relative aspect-square rounded-2xl overflow-hidden border transition-all ${
                     activeImage === img
                       ? 'border-primary ring-2 ring-primary/40'
-                      : 'border-transparent hover:border-border'
+                      : 'border-transparent md:hover:border-border'
                   }`}
                 >
                   <img
                     src={img}
                     alt={`${product.title} Ansicht ${index + 1}`}
-                    className="w-full h-full object-cover"
+                    className="w-full h-full object-cover object-center"
                   />
                 </button>
               ))}
@@ -343,7 +343,7 @@ export default function ProductDetailView({
                       setOptionsMenuOpen(false);
                     }}
                     className={`p-2 rounded-full transition-colors ${
-                      shareMenuOpen ? 'bg-secondary text-primary' : 'text-text-secondary hover:bg-secondary'
+                      shareMenuOpen ? 'bg-secondary text-primary' : 'text-text-secondary md:hover:bg-secondary'
                     }`}
                     aria-haspopup="menu"
                     aria-expanded={shareMenuOpen}
@@ -371,7 +371,7 @@ export default function ProductDetailView({
                               onClick={() => {
                                 action();
                               }}
-                              className="w-full text-left px-3 py-2 rounded-xl hover:bg-secondary transition-colors"
+                              className="w-full text-left px-3 py-2 rounded-xl md:hover:bg-secondary transition-colors"
                             >
                               {content}
                             </button>
@@ -381,7 +381,7 @@ export default function ProductDetailView({
                               href={href}
                               target={external ? '_blank' : undefined}
                               rel={external ? 'noopener noreferrer' : undefined}
-                              className="w-full text-left px-3 py-2 rounded-xl hover:bg-secondary transition-colors"
+                              className="w-full text-left px-3 py-2 rounded-xl md:hover:bg-secondary transition-colors"
                             >
                               {content}
                             </a>
@@ -401,7 +401,7 @@ export default function ProductDetailView({
                         setShareMenuOpen(false);
                       }}
                       className={`p-2 rounded-full transition-colors ${
-                        optionsMenuOpen ? 'bg-secondary text-primary' : 'text-text-secondary hover:bg-secondary'
+                        optionsMenuOpen ? 'bg-secondary text-primary' : 'text-text-secondary md:hover:bg-secondary'
                       }`}
                       aria-haspopup="menu"
                       aria-expanded={optionsMenuOpen}

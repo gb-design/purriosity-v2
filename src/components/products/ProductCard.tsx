@@ -7,13 +7,20 @@ import { useSavedProducts } from '../../hooks/useSavedProducts';
 
 interface ProductCardProps {
   product: Product;
+  productIds?: string[];
+  productIndex?: number;
 }
 
-export default function ProductCard({ product }: ProductCardProps) {
+export default function ProductCard({ product, productIds, productIndex }: ProductCardProps) {
     const location = useLocation();
     const navigate = useNavigate();
     const backgroundLocation = (location.state as { background?: Location })?.background;
     const linkState = backgroundLocation ? { background: backgroundLocation } : { background: location };
+    const modalState = { ...linkState } as Record<string, unknown>;
+    if (productIds && typeof productIndex === 'number') {
+        modalState.productSequence = productIds;
+        modalState.productIndex = productIndex;
+    }
     const { isPurred, purrCount, togglePurr } = useProductPurr(product.id, product.purrCount);
     const { isSaved, toggleSave } = useSavedProducts();
     const saved = isSaved(product.id);
@@ -37,15 +44,15 @@ export default function ProductCard({ product }: ProductCardProps) {
   };
 
   return (
-        <Link to={`/product/${product.id}`} state={linkState} replace={Boolean(backgroundLocation)}>
-      <div className="group relative bg-card rounded-lg overflow-hidden shadow-md hover:shadow-xl transition-all duration-300 hover:-translate-y-1 mb-4 border border-transparent hover:border-primary/20">
+        <Link to={`/product/${product.id}`} state={modalState} replace={Boolean(backgroundLocation)}>
+      <div className="group relative bg-card rounded-lg overflow-hidden shadow-md md:hover:shadow-xl transition-all duration-300 md:hover:-translate-y-1 mb-4 border border-transparent md:hover:border-primary/20">
         {/* Save Button - Top Right */}
         <button
           onClick={handleSave}
           className={`absolute top-2 right-2 p-2 rounded-full backdrop-blur-sm transition-all z-10 ${
             saved
               ? 'bg-primary text-primary-foreground'
-              : 'bg-black/20 text-white hover:bg-white hover:text-foreground opacity-0 group-hover:opacity-100'
+              : 'bg-black/20 text-white md:hover:bg-white md:hover:text-foreground opacity-0 md:group-hover:opacity-100'
           }`}
         >
           {saved ? <BookmarkCheck className="w-4 h-4" /> : <Bookmark className="w-4 h-4" />}
@@ -62,10 +69,10 @@ export default function ProductCard({ product }: ProductCardProps) {
           <img
             src={product.images[0]}
             alt={product.title}
-            className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
+            className="w-full h-full object-cover transition-transform duration-500 md:group-hover:scale-110"
             loading="lazy"
           />
-          <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+          <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent opacity-0 md:group-hover:opacity-100 transition-opacity duration-300" />
         </div>
 
         {/* Content */}
@@ -96,7 +103,7 @@ export default function ProductCard({ product }: ProductCardProps) {
               className={`flex items-center gap-2 px-3.5 py-1.5 rounded-full text-sm font-semibold transition-all ${
                 isPurred
                   ? 'bg-primary text-primary-foreground shadow-lg shadow-primary/30 scale-105'
-                  : 'bg-secondary text-text-secondary hover:bg-primary/10 hover:text-primary hover:scale-105'
+                  : 'bg-secondary text-text-secondary md:hover:bg-primary/10 md:hover:text-primary md:hover:scale-105'
               }`}
             >
               <Heart className={`w-4 h-4 ${isPurred ? 'fill-current animate-pulse' : ''}`} />

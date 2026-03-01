@@ -6,8 +6,11 @@ export const fetchRelatedProducts = async (product: Product, limit = 6): Promise
   const fetchFallback = async () => {
     const { data: fallback, error: fallbackError } = await supabase
       .from('products')
-      .select('*')
+      .select(
+        'id,title,description,short_description,images,price,currency,affiliate_url,purr_count,view_count,tags,categories,created_at,is_active'
+      )
       .neq('id', product.id)
+      .eq('is_active', true)
       .order('created_at', { ascending: false })
       .limit(limit);
 
@@ -30,8 +33,11 @@ export const fetchRelatedProducts = async (product: Product, limit = 6): Promise
   const fetchWithQuery = async () => {
     const { data, error } = await supabase
       .from('products')
-      .select('*')
+      .select(
+        'id,title,description,short_description,images,price,currency,affiliate_url,purr_count,view_count,tags,categories,created_at,is_active'
+      )
       .neq('id', product.id)
+      .eq('is_active', true)
       .overlaps('tags', product.tags.slice(0, 3))
       .order('created_at', { ascending: false })
       .limit(limit);
@@ -43,10 +49,8 @@ export const fetchRelatedProducts = async (product: Product, limit = 6): Promise
   try {
     const primary = await fetchWithQuery();
     const mappedPrimary = primary.map((item: Record<string, unknown>) => mapDbProductToProduct(item));
-    const filteredPrimary = mappedPrimary.filter((item: Product) => item.isActive !== false);
-
-    if (filteredPrimary.length > 0) {
-      return filteredPrimary;
+    if (mappedPrimary.length > 0) {
+      return mappedPrimary;
     }
 
     return await fetchFallback();

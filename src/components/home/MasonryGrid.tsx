@@ -29,6 +29,8 @@ export default function MasonryGrid({ products }: MasonryGridProps) {
         );
     }
 
+    const productIds = products.map((product) => product.id);
+
     return (
         <div id="product-grid" className="container mx-auto px-4 py-8">
             <Masonry
@@ -36,8 +38,8 @@ export default function MasonryGrid({ products }: MasonryGridProps) {
                 className="flex -ml-4 w-auto"
                 columnClassName="pl-4 bg-clip-padding"
             >
-                {products.map((product) => (
-                    <ProductCard key={product.id} product={product} />
+                {products.map((product, index) => (
+                    <ProductCard key={product.id} product={product} productIds={productIds} productIndex={index} />
                 ))}
             </Masonry>
         </div>

@@ -17,7 +17,10 @@ export default function HomePage() {
       try {
         const { data, error } = await supabase
           .from('products')
-          .select('*')
+          .select(
+            'id,title,description,short_description,images,price,currency,affiliate_url,purr_count,view_count,tags,categories,created_at,is_active'
+          )
+          .eq('is_active', true)
           .order('created_at', { ascending: false });
 
         if (error) throw error;
@@ -25,8 +28,7 @@ export default function HomePage() {
         const mappedProducts: Product[] = (data ?? []).map((item: Record<string, unknown>) =>
           mapDbProductToProduct(item)
         );
-        const activeProducts = mappedProducts.filter((product) => product.isActive !== false);
-        setProducts(activeProducts);
+        setProducts(mappedProducts);
         setError(null);
       } catch (fetchError) {
         console.error('Error fetching products:', fetchError);

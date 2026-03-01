@@ -97,11 +97,14 @@ export default function ProductCarousel({ products }: ProductCarouselProps) {
   }, [itemsPerView, products.length]);
 
   const cardStyle = useMemo<CSSProperties>(() => {
-    const base = itemsPerView === 3 ? '33.333%' : '50%';
+    const base = itemsPerView === 3 ? '33.333%' : '80%';
+    const gutter = itemsPerView === 3 ? '1rem' : '0.5rem';
     return {
-      flex: `0 0 calc(${base} - 1rem)`
+      flex: `0 0 calc(${base} - ${gutter})`
     };
   }, [itemsPerView]);
+
+  const productIds = products.map((product) => product.id);
 
   if (products.length === 0) {
     return null;
@@ -138,10 +141,10 @@ export default function ProductCarousel({ products }: ProductCarouselProps) {
         </>
       )}
 
-      <div className="overflow-hidden px-10">
+      <div className="overflow-hidden px-6 sm:px-10">
         <div
           ref={containerRef}
-          className="flex gap-5 py-4 overflow-x-auto select-none cursor-grab active:cursor-grabbing touch-pan-x"
+          className="flex gap-4 py-4 overflow-x-auto select-none cursor-grab active:cursor-grabbing touch-pan-x"
           style={trackStyle}
           onPointerDown={handlePointerDown}
           onPointerMove={handlePointerMove}
@@ -149,9 +152,9 @@ export default function ProductCarousel({ products }: ProductCarouselProps) {
           onPointerLeave={stopDragging}
           onPointerCancel={handlePointerCancel}
         >
-          {products.map((product) => (
+          {products.map((product, index) => (
             <div key={product.id} className="flex-shrink-0" style={cardStyle}>
-              <ProductCard product={product} />
+              <ProductCard product={product} productIds={productIds} productIndex={index} />
             </div>
           ))}
         </div>
