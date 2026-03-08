@@ -55,6 +55,14 @@ export default function AdminDashboard() {
         () => products.filter((item) => item.isActive === false).length,
         [products]
     );
+    const affiliateLinkCount = useMemo(
+        () => products.filter((item) => (item.linkType ?? 'affiliate') === 'affiliate').length,
+        [products]
+    );
+    const regularUrlCount = useMemo(
+        () => products.filter((item) => item.linkType === 'regular').length,
+        [products]
+    );
 
     const stats = useMemo(() => {
         const totalProducts = products.length;
@@ -68,6 +76,13 @@ export default function AdminDashboard() {
                 icon: Package,
                 color: 'bg-blue-500',
                 badge: `${activeProductCount.toLocaleString('de-DE')} aktiv · ${inactiveProductCount.toLocaleString('de-DE')} inaktiv`,
+            },
+            {
+                label: 'Link-Typen',
+                value: affiliateLinkCount.toLocaleString('de-DE'),
+                icon: ArrowUpRight,
+                color: 'bg-violet-500',
+                badge: `${regularUrlCount.toLocaleString('de-DE')} normale URLs`,
             },
             {
                 label: 'Purrs',
@@ -93,7 +108,7 @@ export default function AdminDashboard() {
         ];
 
         return base;
-    }, [products, adminUserCount, activeProductCount, inactiveProductCount]);
+    }, [products, adminUserCount, activeProductCount, inactiveProductCount, affiliateLinkCount, regularUrlCount]);
 
     useEffect(() => {
         const interval = setInterval(() => {
@@ -111,7 +126,7 @@ export default function AdminDashboard() {
                     supabase
                         .from('products')
                         .select(
-                            'id, title, description, short_description, tags, categories, images, featured_image_url, affiliate_url, purr_count, view_count, is_active, created_at'
+                            'id, title, description, short_description, tags, categories, images, featured_image_url, affiliate_url, product_url, link_type, purr_count, view_count, is_active, created_at'
                         )
                         .order('created_at', { ascending: false }),
                     supabase
@@ -159,7 +174,7 @@ export default function AdminDashboard() {
             )}
 
             {/* Stats Grid */}
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-10">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6 mb-10">
                 {stats.map((stat) => (
                     <div key={stat.label} className="bg-card border border-border p-6 rounded-2xl shadow-sm hover:shadow-md transition-shadow">
                         <div className="flex justify-between items-start mb-4">

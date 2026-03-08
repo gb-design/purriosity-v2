@@ -9,6 +9,8 @@ description: "Perform language and framework specific security best-practice rev
 
 This skill provides a description of how to identify the language and frameworks used by the current context, and then to load information from this skill's references directory about the security best practices for this language and or frameworks.
 
+For this repository, prioritize `javascript/typescript` frontend guidance and `Postgres/Supabase` backend data-access patterns when mapping findings.
+
 This information, if present, can be used to write new secure by default code, or to passively detect major issues within existing code, or (if requested by the user) provide a vulnerability report and suggest fixes.
 
 ## Workflow

@@ -1,0 +1,6 @@
+interface:
+  display_name: "QA"
+  short_description: "Validate critical flows and provide release readiness"
+  default_prompt: "Use $qa to test the changed flows and return a GO, GO WITH RISKS, or NO-GO recommendation."
+policy:
+  allow_implicit_invocation: true

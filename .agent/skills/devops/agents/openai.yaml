@@ -1,0 +1,6 @@
+interface:
+  display_name: "DevOps"
+  short_description: "Run safe deployments with monitoring and rollback plans"
+  default_prompt: "Use $devops to prepare and execute deployment with preflight checks and rollback readiness."
+policy:
+  allow_implicit_invocation: true

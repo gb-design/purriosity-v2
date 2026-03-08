@@ -1,0 +1,6 @@
+interface:
+  display_name: "Content"
+  short_description: "Create conversion-focused product and editorial copy"
+  default_prompt: "Use $content to write and optimize this copy for clarity, SEO intent, and brand voice."
+policy:
+  allow_implicit_invocation: true

@@ -108,6 +108,12 @@ export const mapDbProductToProduct = (item: Record<string, unknown>): Product =>
     (item.affiliateUrl as string) ??
     (item['affiliate_url'] as string) ??
     '';
+  const productUrl =
+    (item['product_url'] as string) ??
+    affiliateUrl;
+  const rawLinkType = item['link_type'];
+  const linkType: 'affiliate' | 'regular' =
+    rawLinkType === 'regular' || rawLinkType === 'affiliate' ? rawLinkType : 'affiliate';
 
   const platformCandidates = [
     normalizePlatforms(item['affiliate_platforms']),
@@ -136,6 +142,8 @@ export const mapDbProductToProduct = (item: Record<string, unknown>): Product =>
     price: typeof item.price === 'number' ? item.price : Number(item.price ?? 0),
     currency: (item.currency as string) ?? 'EUR',
     affiliateUrl,
+    productUrl,
+    linkType,
     affiliatePlatforms,
     purrCount:
       typeof item['purr_count'] === 'number'

@@ -33,6 +33,8 @@ interface Product {
   short_description: string;
   images: string[];
   affiliate_url: string;
+  product_url?: string;
+  link_type?: 'affiliate' | 'regular';
   affiliate_platforms: string[];
   tags: string[];
   categories: string[];
@@ -107,6 +109,8 @@ export default function ProductManagement() {
   const [tagsDropdownPosition, setTagsDropdownPosition] = useState({ top: 0, left: 0, width: 0 });
   const [isActiveSupported, setIsActiveSupported] = useState(true);
   const [isAffiliatePlatformsSupported, setIsAffiliatePlatformsSupported] = useState(true);
+  const [isLinkTypeSupported, setIsLinkTypeSupported] = useState(true);
+  const [isProductUrlSupported, setIsProductUrlSupported] = useState(true);
   const { categories: availableCategories, loading: categoriesLoading } = useCategories();
 
   const [formData, setFormData] = useState<Partial<Product>>({
@@ -114,6 +118,8 @@ export default function ProductManagement() {
     description: '',
     short_description: '',
     affiliate_url: '',
+    product_url: '',
+    link_type: 'affiliate',
     affiliate_platforms: [],
     tags: [],
     categories: [],
@@ -148,14 +154,28 @@ export default function ProductManagement() {
           supabase.from('products').select('id, is_active').limit(1),
           supabase.from('products').select('id, affiliate_platforms').limit(1),
         ]);
+      const [{ error: linkTypeProbeError }, { error: productUrlProbeError }] = await Promise.all([
+        supabase.from('products').select('id, link_type').limit(1),
+        supabase.from('products').select('id, product_url').limit(1),
+      ]);
 
       const hasIsActive = hasIsActiveInRows || !isMissingColumnError(isActiveProbeError, 'is_active');
       const hasAffiliatePlatforms =
         hasAffiliatePlatformsInRows ||
         !isMissingColumnError(affiliatePlatformsProbeError, 'affiliate_platforms');
+      const hasLinkType =
+        (data || []).some((item: Record<string, unknown>) =>
+          Object.prototype.hasOwnProperty.call(item, 'link_type')
+        ) || !isMissingColumnError(linkTypeProbeError, 'link_type');
+      const hasProductUrl =
+        (data || []).some((item: Record<string, unknown>) =>
+          Object.prototype.hasOwnProperty.call(item, 'product_url')
+        ) || !isMissingColumnError(productUrlProbeError, 'product_url');
 
       setIsActiveSupported(hasIsActive);
       setIsAffiliatePlatformsSupported(hasAffiliatePlatforms);
+      setIsLinkTypeSupported(hasLinkType);
+      setIsProductUrlSupported(hasProductUrl);
     } catch (error) {
       console.error('Error fetching products:', error);
     } finally {
@@ -201,6 +221,8 @@ export default function ProductManagement() {
       setEditingProduct(product);
       setFormData({
         ...product,
+        product_url: product.product_url ?? product.affiliate_url ?? '',
+        link_type: product.link_type ?? 'affiliate',
         tags: product.tags?.map((tag) => sanitizeTagInput(tag)) || [],
         affiliate_platforms:
           product.affiliate_platforms?.map((platform) => normalizePlatformInput(platform)) || [],
@@ -212,6 +234,8 @@ export default function ProductManagement() {
         description: '',
         short_description: '',
         affiliate_url: '',
+        product_url: '',
+        link_type: 'affiliate',
         affiliate_platforms: [],
         tags: [],
         categories: [],
@@ -235,16 +259,31 @@ export default function ProductManagement() {
     e.preventDefault();
     setIsSaving(true);
     try {
-      const safeAffiliateUrl = ensureSafeExternalUrl(formData.affiliate_url);
-      if (!safeAffiliateUrl) {
+      const selectedLinkType = formData.link_type === 'regular' ? 'regular' : 'affiliate';
+      const enteredUrl = (formData.product_url || formData.affiliate_url || '').trim();
+      const safeProductUrl = ensureSafeExternalUrl(enteredUrl);
+      if (!safeProductUrl) {
         throw new Error('Bitte gib eine gueltige http(s)-URL ein.');
       }
-      const payload: Record<string, unknown> = { ...formData, affiliate_url: safeAffiliateUrl };
+      const payload: Record<string, unknown> = {
+        ...formData,
+        affiliate_url: safeProductUrl,
+        product_url: safeProductUrl,
+        link_type: selectedLinkType,
+      };
       if (!isAffiliatePlatformsSupported) {
         delete payload.affiliate_platforms;
+      } else if (selectedLinkType === 'regular') {
+        payload.affiliate_platforms = [];
       }
       if (!isActiveSupported) {
         delete payload.is_active;
+      }
+      if (!isProductUrlSupported) {
+        delete payload.product_url;
+      }
+      if (!isLinkTypeSupported) {
+        delete payload.link_type;
       }
 
       if (editingProduct) {
@@ -365,6 +404,22 @@ export default function ProductManagement() {
           -Spalte. Bitte führe{' '}
           <code className="bg-amber-500/20 px-1.5 py-0.5 rounded">supabase_product_platforms.sql</code>{' '}
           aus, um Plattform-Mehrfachauswahl zu aktivieren.
+        </div>
+      )}
+
+      {(!isLinkTypeSupported || !isProductUrlSupported) && (
+        <div className="bg-violet-500/10 border border-violet-500/30 text-violet-700 p-4 rounded-2xl mb-8">
+          ⚠️ Für Link-Typ-Auswahl fehlen Spalten in{' '}
+          <code className="bg-violet-500/20 px-1.5 py-0.5 rounded">products</code>:{' '}
+          {!isLinkTypeSupported && (
+            <code className="bg-violet-500/20 px-1.5 py-0.5 rounded mr-1">link_type</code>
+          )}
+          {!isProductUrlSupported && (
+            <code className="bg-violet-500/20 px-1.5 py-0.5 rounded">product_url</code>
+          )}{' '}
+          Bitte führe{' '}
+          <code className="bg-violet-500/20 px-1.5 py-0.5 rounded">supabase_product_links.sql</code>{' '}
+          aus.
         </div>
       )}
 
@@ -601,14 +656,48 @@ export default function ProductManagement() {
 
                 <div className="space-y-6">
                   <div>
-                    <label className="block text-sm font-bold mb-2">URL</label>
+                    <label className="block text-sm font-bold mb-2">Link-Typ</label>
+                    <select
+                      value={formData.link_type || 'affiliate'}
+                      disabled={!isLinkTypeSupported}
+                      onChange={(e) =>
+                        setFormData({
+                          ...formData,
+                          link_type: (e.target.value === 'regular' ? 'regular' : 'affiliate') as
+                            | 'affiliate'
+                            | 'regular',
+                        })
+                      }
+                      className="w-full px-4 py-3 bg-muted border border-border rounded-xl focus:ring-2 focus:ring-primary/50 outline-none transition-all disabled:opacity-60 disabled:cursor-not-allowed"
+                    >
+                      <option value="affiliate">Affiliate-Link</option>
+                      <option value="regular">Normale Produkt-URL</option>
+                    </select>
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-bold mb-2">
+                      {(formData.link_type || 'affiliate') === 'regular'
+                        ? 'Produkt-URL'
+                        : 'Affiliate-URL'}
+                    </label>
                     <input
                       required
                       type="url"
-                      value={formData.affiliate_url}
-                      onChange={(e) => setFormData({ ...formData, affiliate_url: e.target.value })}
+                      value={formData.product_url || formData.affiliate_url || ''}
+                      onChange={(e) =>
+                        setFormData({
+                          ...formData,
+                          product_url: e.target.value,
+                          affiliate_url: e.target.value,
+                        })
+                      }
                       className="w-full px-4 py-3 bg-muted border border-border rounded-xl focus:ring-2 focus:ring-primary/50 outline-none transition-all font-mono text-sm"
-                      placeholder="https://amazon.de/..."
+                      placeholder={
+                        (formData.link_type || 'affiliate') === 'regular'
+                          ? 'https://shop.de/produkt/...'
+                          : 'https://amazon.de/...'
+                      }
                     />
                   </div>
 
