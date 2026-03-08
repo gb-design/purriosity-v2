@@ -1,6 +1,7 @@
 import { createContext, useContext, useEffect, useMemo, useState, type ReactNode } from 'react';
 import type { AuthChangeEvent, Session, User } from '@supabase/supabase-js';
 import { supabase } from '../lib/supabase';
+import { getSafeRedirectPath } from '../lib/security';
 
 interface AuthContextValue {
   user: User | null;
@@ -68,7 +69,10 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   };
 
   const signInWithGoogle = async (redirectPath?: string) => {
-    const redirectQuery = redirectPath ? `?redirect=${encodeURIComponent(redirectPath)}` : '';
+    const safeRedirectPath = getSafeRedirectPath(redirectPath, '');
+    const redirectQuery = safeRedirectPath
+      ? `?redirect=${encodeURIComponent(safeRedirectPath)}`
+      : '';
     await supabase.auth.signInWithOAuth({
       provider: 'google',
       options: {

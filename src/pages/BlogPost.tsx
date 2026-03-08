@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import ReactMarkdown from 'react-markdown';
 import { supabase } from '../lib/supabase';
+import { getSafeExternalUrl } from '../lib/security';
 import { Loader2, Calendar, User, ArrowLeft, Tag, Share2, Facebook, Twitter, Mail, Link as LinkIcon, Check } from 'lucide-react';
 
 interface BlogPost {
@@ -61,15 +62,21 @@ export default function BlogPost() {
         );
     }
 
+    const safeCoverImage = getSafeExternalUrl(post.cover_image);
+
     return (
         <article className="min-h-screen pb-20">
             {/* Hero Image */}
             <div className="w-full h-[40vh] md:h-[50vh] relative bg-secondary">
-                <img
-                    src={post.cover_image}
-                    alt={post.title}
-                    className="w-full h-full object-cover"
-                />
+                {safeCoverImage ? (
+                    <img
+                        src={safeCoverImage}
+                        alt={post.title}
+                        className="w-full h-full object-cover"
+                    />
+                ) : (
+                    <div className="w-full h-full bg-secondary" aria-hidden="true" />
+                )}
                 <div className="absolute inset-0 bg-gradient-to-t from-background to-transparent opacity-90"></div>
 
                 <div className="absolute bottom-0 left-0 w-full p-4 md:p-12">
@@ -113,12 +120,38 @@ export default function BlogPost() {
                                 blockquote: ({ ...props }) => (
                                     <blockquote className="border-l-4 border-secondary bg-secondary/10 p-6 rounded-r-xl my-8 italic text-xl text-foreground" {...props} />
                                 ),
-                                img: ({ ...props }) => (
-                                    <span className="block my-8">
-                                        <img className="rounded-2xl shadow-lg w-full object-cover max-h-[500px]" {...props} />
-                                        {props.alt && <span className="block text-center text-sm text-muted-foreground mt-2 italic">{props.alt}</span>}
-                                    </span>
-                                ),
+                                a: ({ href, ...props }) => {
+                                    const safeHref = getSafeExternalUrl(href || '');
+                                    if (!safeHref) {
+                                        return <span {...props} />;
+                                    }
+                                    return (
+                                        <a
+                                            {...props}
+                                            href={safeHref}
+                                            target="_blank"
+                                            rel="noopener noreferrer"
+                                        />
+                                    );
+                                },
+                                img: ({ src, alt }) => {
+                                    const safeSrc = getSafeExternalUrl(src || '');
+                                    if (!safeSrc) {
+                                        return alt ? (
+                                            <span className="block my-8 text-center text-sm text-muted-foreground italic">{alt}</span>
+                                        ) : null;
+                                    }
+                                    return (
+                                        <span className="block my-8 rounded-2xl overflow-hidden shadow-lg bg-secondary/30">
+                                            <img
+                                                className="w-full h-auto object-contain max-h-[500px]"
+                                                src={safeSrc}
+                                                alt={alt || ''}
+                                            />
+                                            {alt && <span className="block text-center text-sm text-muted-foreground mt-2 italic">{alt}</span>}
+                                        </span>
+                                    );
+                                },
                             }}
                         >
                             {post.content}

@@ -2,6 +2,7 @@ import { useState, useEffect, useRef } from 'react';
 import AdminLayout from '../../components/admin/AdminLayout';
 import { supabase } from '../../lib/supabase';
 import { useCategories } from '../../hooks/useCategories';
+import { getSafeExternalUrl } from '../../lib/security';
 
 // Prevent body scroll when modal is open
 const handleBodyScroll = (isOpen: boolean) => {
@@ -84,6 +85,14 @@ const platformKey = (platform: string) =>
 const removePlatformValue = (current: string[] = [], target: string) =>
   current.filter((platform) => platformKey(platform) !== platformKey(target));
 
+const ensureSafeExternalUrl = (value: string | undefined) => getSafeExternalUrl(value ?? '');
+const isMissingColumnError = (error: unknown, columnName: string) =>
+  typeof error === 'object' &&
+  error !== null &&
+  'message' in error &&
+  typeof (error as { message?: unknown }).message === 'string' &&
+  (error as { message: string }).message.includes(columnName);
+
 export default function ProductManagement() {
   const [products, setProducts] = useState<Product[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -97,6 +106,7 @@ export default function ProductManagement() {
   const tagsDropdownRef = useRef<HTMLInputElement>(null);
   const [tagsDropdownPosition, setTagsDropdownPosition] = useState({ top: 0, left: 0, width: 0 });
   const [isActiveSupported, setIsActiveSupported] = useState(true);
+  const [isAffiliatePlatformsSupported, setIsAffiliatePlatformsSupported] = useState(true);
   const { categories: availableCategories, loading: categoriesLoading } = useCategories();
 
   const [formData, setFormData] = useState<Partial<Product>>({
@@ -126,14 +136,26 @@ export default function ProductManagement() {
         .order('created_at', { ascending: false });
       if (error) throw error;
       setProducts(data || []);
-      if (data && data.length > 0) {
-        const hasIsActive = data.some((item: Record<string, unknown>) =>
-          Object.prototype.hasOwnProperty.call(item, 'is_active')
-        );
-        setIsActiveSupported(hasIsActive);
-      } else {
-        setIsActiveSupported(true);
-      }
+      const hasIsActiveInRows = (data || []).some((item: Record<string, unknown>) =>
+        Object.prototype.hasOwnProperty.call(item, 'is_active')
+      );
+      const hasAffiliatePlatformsInRows = (data || []).some((item: Record<string, unknown>) =>
+        Object.prototype.hasOwnProperty.call(item, 'affiliate_platforms')
+      );
+
+      const [{ error: isActiveProbeError }, { error: affiliatePlatformsProbeError }] =
+        await Promise.all([
+          supabase.from('products').select('id, is_active').limit(1),
+          supabase.from('products').select('id, affiliate_platforms').limit(1),
+        ]);
+
+      const hasIsActive = hasIsActiveInRows || !isMissingColumnError(isActiveProbeError, 'is_active');
+      const hasAffiliatePlatforms =
+        hasAffiliatePlatformsInRows ||
+        !isMissingColumnError(affiliatePlatformsProbeError, 'affiliate_platforms');
+
+      setIsActiveSupported(hasIsActive);
+      setIsAffiliatePlatformsSupported(hasAffiliatePlatforms);
     } catch (error) {
       console.error('Error fetching products:', error);
     } finally {
@@ -213,21 +235,34 @@ export default function ProductManagement() {
     e.preventDefault();
     setIsSaving(true);
     try {
+      const safeAffiliateUrl = ensureSafeExternalUrl(formData.affiliate_url);
+      if (!safeAffiliateUrl) {
+        throw new Error('Bitte gib eine gueltige http(s)-URL ein.');
+      }
+      const payload: Record<string, unknown> = { ...formData, affiliate_url: safeAffiliateUrl };
+      if (!isAffiliatePlatformsSupported) {
+        delete payload.affiliate_platforms;
+      }
+      if (!isActiveSupported) {
+        delete payload.is_active;
+      }
+
       if (editingProduct) {
         const { error } = await supabase
           .from('products')
-          .update(formData)
+          .update(payload)
           .eq('id', editingProduct.id);
         if (error) throw error;
       } else {
-        const { error } = await supabase.from('products').insert([formData]);
+        const { error } = await supabase.from('products').insert([payload]);
         if (error) throw error;
       }
       await fetchProducts();
       handleCloseForm();
     } catch (error) {
       console.error('Error saving product:', error);
-      alert('Fehler beim Speichern des Produkts.');
+      const message = error instanceof Error ? error.message : 'Fehler beim Speichern des Produkts.';
+      alert(message);
     } finally {
       setIsSaving(false);
     }
@@ -252,7 +287,7 @@ export default function ProductManagement() {
     setIsUploading(true);
     try {
       const fileExt = file.name.split('.').pop();
-      const fileName = `${Math.random()}.${fileExt}`;
+      const fileName = `${crypto.randomUUID()}.${fileExt}`;
       const filePath = `products/${fileName}`;
 
       const { error: uploadError } = await supabase.storage.from('media').upload(filePath, file);
@@ -321,6 +356,18 @@ export default function ProductManagement() {
         </div>
       )}
 
+      {!isAffiliatePlatformsSupported && (
+        <div className="bg-amber-500/10 border border-amber-500/30 text-amber-700 p-4 rounded-2xl mb-8">
+          ⚠️ Deine Supabase-Tabelle{' '}
+          <code className="bg-amber-500/20 px-1.5 py-0.5 rounded">products</code>{' '}
+          hat noch keine{' '}
+          <code className="bg-amber-500/20 px-1.5 py-0.5 rounded">affiliate_platforms</code>
+          -Spalte. Bitte führe{' '}
+          <code className="bg-amber-500/20 px-1.5 py-0.5 rounded">supabase_product_platforms.sql</code>{' '}
+          aus, um Plattform-Mehrfachauswahl zu aktivieren.
+        </div>
+      )}
+
       <div className="bg-card border border-border rounded-2xl overflow-hidden shadow-sm">
         <div className="overflow-x-auto">
           <table className="w-full text-left">
@@ -354,8 +401,10 @@ export default function ProductManagement() {
                   </td>
                 </tr>
               ) : (
-                filteredProducts.map((product) => (
-                  <tr key={product.id} className="hover:bg-muted/30 transition-colors">
+                filteredProducts.map((product) => {
+                  const safeAffiliateUrl = ensureSafeExternalUrl(product.affiliate_url);
+                  return (
+                    <tr key={product.id} className="hover:bg-muted/30 transition-colors">
                     <td className="px-6 py-4">
                       <div className="flex items-center gap-4">
                         <div className="h-12 w-12 rounded-lg bg-secondary overflow-hidden flex-shrink-0">
@@ -415,15 +464,24 @@ export default function ProductManagement() {
                     </td>
                     <td className="px-6 py-4 text-right">
                       <div className="flex justify-end gap-2">
-                        <a
-                          href={product.affiliate_url}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="p-2 hover:bg-secondary rounded-lg text-muted-foreground hover:text-foreground transition-all"
-                          title="Provider Link"
-                        >
-                          <ExternalLink className="h-4 w-4" />
-                        </a>
+                        {safeAffiliateUrl ? (
+                          <a
+                            href={safeAffiliateUrl}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="p-2 hover:bg-secondary rounded-lg text-muted-foreground hover:text-foreground transition-all"
+                            title="Provider Link"
+                          >
+                            <ExternalLink className="h-4 w-4" />
+                          </a>
+                        ) : (
+                          <span
+                            className="p-2 rounded-lg text-muted-foreground/50 cursor-not-allowed"
+                            title="Ungueltiger Link"
+                          >
+                            <ExternalLink className="h-4 w-4" />
+                          </span>
+                        )}
                         <button
                           onClick={() => handleOpenForm(product)}
                           className="p-2 hover:bg-primary/10 rounded-lg text-muted-foreground hover:text-primary transition-all"
@@ -440,8 +498,9 @@ export default function ProductManagement() {
                         </button>
                       </div>
                     </td>
-                  </tr>
-                ))
+                    </tr>
+                  );
+                })
               )}
             </tbody>
           </table>
@@ -558,6 +617,7 @@ export default function ProductManagement() {
                     <input
                       type="text"
                       value={(formData.affiliate_platforms || []).join(', ')}
+                      disabled={!isAffiliatePlatformsSupported}
                       onChange={(e) => {
                         const nextPlatforms = e.target.value
                           .split(',')
@@ -565,7 +625,7 @@ export default function ProductManagement() {
                           .filter(Boolean);
                         setFormData({ ...formData, affiliate_platforms: nextPlatforms });
                       }}
-                      className="w-full px-4 py-3 bg-muted border border-border rounded-xl focus:ring-2 focus:ring-primary/50 outline-none transition-all text-sm"
+                      className="w-full px-4 py-3 bg-muted border border-border rounded-xl focus:ring-2 focus:ring-primary/50 outline-none transition-all text-sm disabled:opacity-60 disabled:cursor-not-allowed"
                       placeholder="Amazon, Temu, Etsy, Zooplus..."
                     />
                     <p className="text-xs text-muted-foreground mt-1">

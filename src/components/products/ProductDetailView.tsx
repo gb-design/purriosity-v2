@@ -20,6 +20,7 @@ import { formatPurrCount } from '../../lib/utils';
 import { useProductPurr } from '../../hooks/useProductPurr';
 import { useSavedProducts } from '../../hooks/useSavedProducts';
 import { useAuth } from '../../hooks/useAuth';
+import { getSafeExternalUrl } from '../../lib/security';
 import ProductCarousel from './ProductCarousel';
 
 interface ProductDetailViewProps {
@@ -111,6 +112,7 @@ export default function ProductDetailView({
   const [shareUrl, setShareUrl] = useState('');
   const [copyStatus, setCopyStatus] = useState<'idle' | 'copied' | 'error'>('idle');
   const copyTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const safeAffiliateUrl = getSafeExternalUrl(product.affiliateUrl);
 
   useEffect(() => {
     const nextImages = buildGalleryImages(product);
@@ -523,15 +525,21 @@ export default function ProductDetailView({
               <p className="text-sm text-text-secondary">
                 Klick dich direkt zum Anbieter und entdecke alle Details rund um dieses Produkt.
               </p>
-              <a
-                href={product.affiliateUrl}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="inline-flex items-center justify-center gap-2 px-8 py-3 bg-primary hover:bg-primary-dark text-white rounded-full font-bold text-lg transition-all hover:scale-105 shadow-md shadow-primary/20"
-              >
-                Zum Produkt
-                <ExternalLink className="w-5 h-5" />
-              </a>
+              {safeAffiliateUrl ? (
+                <a
+                  href={safeAffiliateUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center justify-center gap-2 px-8 py-3 bg-primary hover:bg-primary-dark text-white rounded-full font-bold text-lg transition-all hover:scale-105 shadow-md shadow-primary/20"
+                >
+                  Zum Produkt
+                  <ExternalLink className="w-5 h-5" />
+                </a>
+              ) : (
+                <span className="inline-flex items-center justify-center gap-2 px-8 py-3 bg-muted text-muted-foreground rounded-full font-bold text-lg border border-border">
+                  Link nicht verfugbar
+                </span>
+              )}
             </div>
           </div>
 

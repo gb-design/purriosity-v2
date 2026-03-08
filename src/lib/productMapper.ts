@@ -84,11 +84,21 @@ const derivePlatformFromUrl = (url?: string): string | null => {
 
 // Normalize Supabase rows (snake_case) to our UI-friendly Product shape
 export const mapDbProductToProduct = (item: Record<string, unknown>): Product => {
-  const images = Array.isArray(item.images)
-    ? (item.images as string[])
-    : item['featured_image_url']
-      ? [item['featured_image_url'] as string]
-      : [];
+  const featuredImage =
+    (item['featured_image_url'] as string) ??
+    (item['featuredImageUrl'] as string) ??
+    '';
+  const normalizedFeaturedImage = featuredImage.trim();
+  const rawImages = Array.isArray(item.images)
+    ? (item.images as unknown[])
+    : [];
+  const normalizedImages = rawImages
+    .filter((value): value is string => typeof value === 'string')
+    .map((value) => value.trim())
+    .filter(Boolean);
+  const images = normalizedFeaturedImage
+    ? [normalizedFeaturedImage, ...normalizedImages.filter((image) => image !== normalizedFeaturedImage)]
+    : normalizedImages;
 
   const tagsArray = Array.isArray(item.tags) ? (item.tags as string[]) : [];
   const tags = normalizeTags(tagsArray);

@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { Loader2, Mail, Lock, LogIn, UserPlus, Sparkles, ArrowLeft } from 'lucide-react';
 import { useAuth } from '../hooks/useAuth';
+import { getSafeRedirectPath } from '../lib/security';
 
 export default function LoginPage() {
   const { user, loading, signInWithEmail, signUpWithEmail, signInWithGoogle } = useAuth();
@@ -10,7 +11,7 @@ export default function LoginPage() {
   const params = new URLSearchParams(location.search);
   const redirectParam = params.get('redirect');
   const fallbackRedirect = (location.state as { from?: string } | null)?.from;
-  const redirectTo = redirectParam || fallbackRedirect || '/';
+  const redirectTo = getSafeRedirectPath(redirectParam ?? fallbackRedirect);
 
   const [mode, setMode] = useState<'login' | 'signup'>(
     params.get('mode') === 'signup' ? 'signup' : 'login'

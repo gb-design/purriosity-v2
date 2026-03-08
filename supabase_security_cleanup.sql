@@ -39,6 +39,7 @@ alter table if exists public.products
 
 -- products
 alter table if exists public.products enable row level security;
+alter table if exists public.products force row level security;
 
 drop policy if exists "Products are viewable by everyone" on public.products;
 drop policy if exists "Admins can insert products" on public.products;
@@ -95,6 +96,7 @@ create policy "Admins can delete products"
 
 -- blog_posts
 alter table if exists public.blog_posts enable row level security;
+alter table if exists public.blog_posts force row level security;
 
 drop policy if exists "Blog posts are viewable by everyone" on public.blog_posts;
 drop policy if exists "Admins can insert blog_posts" on public.blog_posts;
@@ -151,6 +153,7 @@ create policy "Admins can delete blog_posts"
 
 -- categories (drop all existing policies first to avoid "multiple permissive policies")
 alter table if exists public.categories enable row level security;
+alter table if exists public.categories force row level security;
 
 do $$
 declare
@@ -215,6 +218,7 @@ create policy "Categories admin delete"
 
 -- product_likes
 alter table if exists public.product_likes enable row level security;
+alter table if exists public.product_likes force row level security;
 
 drop policy if exists "likes readable by everyone" on public.product_likes;
 drop policy if exists "user can like" on public.product_likes;
@@ -239,6 +243,7 @@ create policy "user can unlike"
 
 -- product_saves
 alter table if exists public.product_saves enable row level security;
+alter table if exists public.product_saves force row level security;
 
 drop policy if exists "saves readable by owner" on public.product_saves;
 drop policy if exists "user can save" on public.product_saves;
@@ -264,6 +269,7 @@ create policy "user can unsave"
 
 -- profiles
 alter table if exists public.profiles enable row level security;
+alter table if exists public.profiles force row level security;
 
 drop policy if exists "Public profiles are viewable by everyone" on public.profiles;
 drop policy if exists "Users can update own profile" on public.profiles;

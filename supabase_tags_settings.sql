@@ -8,6 +8,8 @@ CREATE TABLE IF NOT EXISTS public.categories (
     updated_at TIMESTAMP DEFAULT NOW()
 );
 
+ALTER TABLE public.categories ENABLE ROW LEVEL SECURITY;
+
 -- Drop existing policies if they exist
 DROP POLICY IF EXISTS "Categories are viewable by everyone" ON public.categories;
 DROP POLICY IF EXISTS "Categories can be managed by authenticated users" ON public.categories;
@@ -24,18 +26,42 @@ CREATE POLICY "Categories are viewable by everyone"
 CREATE POLICY "Categories admin insert"
     ON public.categories FOR INSERT
     TO authenticated
-    WITH CHECK (auth.role() = 'authenticated');
+    WITH CHECK (
+      EXISTS (
+        SELECT 1
+        FROM public.profiles
+        WHERE profiles.id = (SELECT auth.uid()) AND profiles.is_admin = true
+      )
+    );
 
 CREATE POLICY "Categories admin update"
     ON public.categories FOR UPDATE
     TO authenticated
-    USING (auth.role() = 'authenticated')
-    WITH CHECK (auth.role() = 'authenticated');
+    USING (
+      EXISTS (
+        SELECT 1
+        FROM public.profiles
+        WHERE profiles.id = (SELECT auth.uid()) AND profiles.is_admin = true
+      )
+    )
+    WITH CHECK (
+      EXISTS (
+        SELECT 1
+        FROM public.profiles
+        WHERE profiles.id = (SELECT auth.uid()) AND profiles.is_admin = true
+      )
+    );
 
 CREATE POLICY "Categories admin delete"
     ON public.categories FOR DELETE
     TO authenticated
-    USING (auth.role() = 'authenticated');
+    USING (
+      EXISTS (
+        SELECT 1
+        FROM public.profiles
+        WHERE profiles.id = (SELECT auth.uid()) AND profiles.is_admin = true
+      )
+    );
 
 -- Insert default categories
 INSERT INTO public.categories (name, emoji, display_order) VALUES
