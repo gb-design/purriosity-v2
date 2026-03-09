@@ -11,6 +11,7 @@ const ProductDetail = lazy(() => import('./pages/ProductDetail'));
 const Blog = lazy(() => import('./pages/Blog'));
 const BlogPost = lazy(() => import('./pages/BlogPost'));
 const AboutPage = lazy(() => import('./pages/AboutPage'));
+const InternalBrandPage = lazy(() => import('./pages/InternalBrandPage'));
 const LoginPage = lazy(() => import('./pages/LoginPage'));
 const SavedProductsPage = lazy(() => import('./pages/SavedProductsPage'));
 const AdminLogin = lazy(() => import('./pages/admin/Login'));
@@ -43,6 +44,7 @@ function App() {
             <Route path="/blog" element={<Blog />} />
             <Route path="/blog/:slug" element={<BlogPost />} />
             <Route path="/about" element={<AboutPage />} />
+            <Route path="/internal/brand" element={<InternalBrandPage />} />
             <Route path="/login" element={<LoginPage />} />
             <Route path="/favorites" element={<SavedProductsPage />} />
 

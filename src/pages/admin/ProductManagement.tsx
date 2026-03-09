@@ -87,6 +87,58 @@ const platformKey = (platform: string) =>
 const removePlatformValue = (current: string[] = [], target: string) =>
   current.filter((platform) => platformKey(platform) !== platformKey(target));
 
+const dedupePlatforms = (input: string[] = []) => {
+  const seen = new Set<string>();
+  const output: string[] = [];
+  input.forEach((platform) => {
+    const normalized = normalizePlatformInput(platform);
+    if (!normalized) return;
+    const key = platformKey(normalized);
+    if (seen.has(key)) return;
+    seen.add(key);
+    output.push(normalized);
+  });
+  return output;
+};
+
+const derivePlatformFromUrl = (url: string) => {
+  const safeUrl = ensureSafeExternalUrl(url);
+  if (!safeUrl) return '';
+  try {
+    const host = new URL(safeUrl).hostname.replace(/^www\./, '').toLowerCase();
+    const firstLabel = host.split('.').filter(Boolean)[0] ?? '';
+    return firstLabel ? firstLabel.charAt(0).toUpperCase() + firstLabel.slice(1) : '';
+  } catch {
+    return '';
+  }
+};
+
+const removeAutoPlatform = (platforms: string[], autoPlatform: string) =>
+  autoPlatform ? platforms.filter((platform) => platformKey(platform) !== platformKey(autoPlatform)) : platforms;
+
+const withAutoPlatform = (platforms: string[], autoPlatform: string) =>
+  autoPlatform ? [autoPlatform, ...removeAutoPlatform(platforms, autoPlatform)] : platforms;
+
+const applyPlatformRules = (
+  linkType: 'affiliate' | 'regular',
+  url: string,
+  currentPlatforms: string[] = [],
+  previousAutoPlatform = ''
+) => {
+  const detectedPlatform = derivePlatformFromUrl(url);
+  const manualPlatforms = removeAutoPlatform(dedupePlatforms(currentPlatforms), previousAutoPlatform);
+  if (linkType === 'affiliate') {
+    return {
+      autoPlatform: detectedPlatform,
+      platforms: detectedPlatform ? [detectedPlatform] : [],
+    };
+  }
+  return {
+    autoPlatform: detectedPlatform,
+    platforms: withAutoPlatform(manualPlatforms, detectedPlatform),
+  };
+};
+
 const ensureSafeExternalUrl = (value: string | undefined) => getSafeExternalUrl(value ?? '');
 const isMissingColumnError = (error: unknown, columnName: string) =>
   typeof error === 'object' &&
@@ -111,6 +163,7 @@ export default function ProductManagement() {
   const [isAffiliatePlatformsSupported, setIsAffiliatePlatformsSupported] = useState(true);
   const [isLinkTypeSupported, setIsLinkTypeSupported] = useState(true);
   const [isProductUrlSupported, setIsProductUrlSupported] = useState(true);
+  const [autoDetectedPlatform, setAutoDetectedPlatform] = useState('');
   const { categories: availableCategories, loading: categoriesLoading } = useCategories();
 
   const [formData, setFormData] = useState<Partial<Product>>({
@@ -218,16 +271,25 @@ export default function ProductManagement() {
 
   const handleOpenForm = (product: Product | null = null) => {
     if (product) {
+      const nextLinkType = product.link_type ?? 'affiliate';
+      const nextUrl = product.product_url ?? product.affiliate_url ?? '';
+      const platformResult = applyPlatformRules(
+        nextLinkType,
+        nextUrl,
+        product.affiliate_platforms?.map((platform) => normalizePlatformInput(platform)) || [],
+        ''
+      );
+      setAutoDetectedPlatform(platformResult.autoPlatform);
       setEditingProduct(product);
       setFormData({
         ...product,
-        product_url: product.product_url ?? product.affiliate_url ?? '',
-        link_type: product.link_type ?? 'affiliate',
+        product_url: nextUrl,
+        link_type: nextLinkType,
         tags: product.tags?.map((tag) => sanitizeTagInput(tag)) || [],
-        affiliate_platforms:
-          product.affiliate_platforms?.map((platform) => normalizePlatformInput(platform)) || [],
+        affiliate_platforms: platformResult.platforms,
       });
     } else {
+      setAutoDetectedPlatform('');
       setEditingProduct(null);
       setFormData({
         title: '',
@@ -265,16 +327,21 @@ export default function ProductManagement() {
       if (!safeProductUrl) {
         throw new Error('Bitte gib eine gueltige http(s)-URL ein.');
       }
+      const platformResult = applyPlatformRules(
+        selectedLinkType,
+        safeProductUrl,
+        formData.affiliate_platforms || [],
+        autoDetectedPlatform
+      );
       const payload: Record<string, unknown> = {
         ...formData,
         affiliate_url: safeProductUrl,
         product_url: safeProductUrl,
         link_type: selectedLinkType,
+        affiliate_platforms: platformResult.platforms,
       };
       if (!isAffiliatePlatformsSupported) {
         delete payload.affiliate_platforms;
-      } else if (selectedLinkType === 'regular') {
-        payload.affiliate_platforms = [];
       }
       if (!isActiveSupported) {
         delete payload.is_active;
@@ -660,14 +727,23 @@ export default function ProductManagement() {
                     <select
                       value={formData.link_type || 'affiliate'}
                       disabled={!isLinkTypeSupported}
-                      onChange={(e) =>
+                      onChange={(e) => {
+                        const nextLinkType =
+                          e.target.value === 'regular' ? ('regular' as const) : ('affiliate' as const);
+                        const nextUrl = formData.product_url || formData.affiliate_url || '';
+                        const platformResult = applyPlatformRules(
+                          nextLinkType,
+                          nextUrl,
+                          formData.affiliate_platforms || [],
+                          autoDetectedPlatform
+                        );
                         setFormData({
                           ...formData,
-                          link_type: (e.target.value === 'regular' ? 'regular' : 'affiliate') as
-                            | 'affiliate'
-                            | 'regular',
-                        })
-                      }
+                          link_type: nextLinkType,
+                          affiliate_platforms: platformResult.platforms,
+                        });
+                        setAutoDetectedPlatform(platformResult.autoPlatform);
+                      }}
                       className="w-full px-4 py-3 bg-muted border border-border rounded-xl focus:ring-2 focus:ring-primary/50 outline-none transition-all disabled:opacity-60 disabled:cursor-not-allowed"
                     >
                       <option value="affiliate">Affiliate-Link</option>
@@ -686,11 +762,26 @@ export default function ProductManagement() {
                       type="url"
                       value={formData.product_url || formData.affiliate_url || ''}
                       onChange={(e) =>
-                        setFormData({
-                          ...formData,
-                          product_url: e.target.value,
-                          affiliate_url: e.target.value,
-                        })
+                        (() => {
+                          const nextUrl = e.target.value;
+                          const nextLinkType =
+                            (formData.link_type || 'affiliate') === 'regular'
+                              ? ('regular' as const)
+                              : ('affiliate' as const);
+                          const platformResult = applyPlatformRules(
+                            nextLinkType,
+                            nextUrl,
+                            formData.affiliate_platforms || [],
+                            autoDetectedPlatform
+                          );
+                          setFormData({
+                            ...formData,
+                            product_url: nextUrl,
+                            affiliate_url: nextUrl,
+                            affiliate_platforms: platformResult.platforms,
+                          });
+                          setAutoDetectedPlatform(platformResult.autoPlatform);
+                        })()
                       }
                       className="w-full px-4 py-3 bg-muted border border-border rounded-xl focus:ring-2 focus:ring-primary/50 outline-none transition-all font-mono text-sm"
                       placeholder={
@@ -706,19 +797,29 @@ export default function ProductManagement() {
                     <input
                       type="text"
                       value={(formData.affiliate_platforms || []).join(', ')}
-                      disabled={!isAffiliatePlatformsSupported}
+                      disabled={
+                        !isAffiliatePlatformsSupported || (formData.link_type || 'affiliate') === 'affiliate'
+                      }
                       onChange={(e) => {
                         const nextPlatforms = e.target.value
                           .split(',')
                           .map((platform) => normalizePlatformInput(platform))
                           .filter(Boolean);
-                        setFormData({ ...formData, affiliate_platforms: nextPlatforms });
+                        setFormData({
+                          ...formData,
+                          affiliate_platforms: withAutoPlatform(
+                            dedupePlatforms(nextPlatforms),
+                            autoDetectedPlatform
+                          ),
+                        });
                       }}
                       className="w-full px-4 py-3 bg-muted border border-border rounded-xl focus:ring-2 focus:ring-primary/50 outline-none transition-all text-sm disabled:opacity-60 disabled:cursor-not-allowed"
                       placeholder="Amazon, Temu, Etsy, Zooplus..."
                     />
                     <p className="text-xs text-muted-foreground mt-1">
-                      Mehrere Plattformen mit Komma trennen.
+                      {(formData.link_type || 'affiliate') === 'affiliate'
+                        ? 'Wird automatisch aus der URL erkannt.'
+                        : 'Plattform aus URL wird automatisch gesetzt, weitere mit Komma trennen.'}
                     </p>
                     {formData.affiliate_platforms && formData.affiliate_platforms.length > 0 && (
                       <div className="mt-2 flex flex-wrap gap-2">
@@ -731,13 +832,26 @@ export default function ProductManagement() {
                             <button
                               type="button"
                               onClick={() => {
+                                if (
+                                  (formData.link_type || 'affiliate') === 'affiliate' ||
+                                  (autoDetectedPlatform &&
+                                    platformKey(platform) === platformKey(autoDetectedPlatform))
+                                ) {
+                                  return;
+                                }
                                 const currentPlatforms = formData.affiliate_platforms || [];
                                 const nextPlatforms = removePlatformValue(currentPlatforms, platform);
                                 if (nextPlatforms.length !== currentPlatforms.length) {
                                   setFormData({ ...formData, affiliate_platforms: nextPlatforms });
                                 }
                               }}
-                              className="hover:text-destructive"
+                              className={`${
+                                (formData.link_type || 'affiliate') === 'affiliate' ||
+                                (autoDetectedPlatform &&
+                                  platformKey(platform) === platformKey(autoDetectedPlatform))
+                                  ? 'opacity-50 cursor-not-allowed'
+                                  : 'hover:text-destructive'
+                              }`}
                             >
                               <X className="h-3 w-3" />
                             </button>
