@@ -1,23 +1,27 @@
 import { Sparkles, Heart, PawPrint, Star, Users, Rocket } from 'lucide-react';
+import Silk from '../components/ui/Silk';
 
 const teamMembers = [
   {
     name: 'Mila Stern',
     role: 'Cat Curator',
     bio: 'Sucht weltweit nach den verrücktesten Produkten für Fellnasen.',
-    image: 'https://images.unsplash.com/photo-1544723795-3fb6469f5b39?auto=format&fit=crop&w=600&q=80',
+    image:
+      'https://images.unsplash.com/photo-1544723795-3fb6469f5b39?auto=format&fit=crop&w=600&q=80',
   },
   {
     name: 'Leo Berg',
     role: 'Story Creator',
     bio: 'Verleiht jedem Produkt eine Portion Charme und Persönlichkeit.',
-    image: 'https://images.unsplash.com/photo-1544723795-432537f10232?auto=format&fit=crop&w=600&q=80',
+    image:
+      'https://images.unsplash.com/photo-1544723795-432537f10232?auto=format&fit=crop&w=600&q=80',
   },
   {
     name: 'Nia Walker',
     role: 'Community Wizard',
     bio: 'Pflegt die Purriosity-Familie und sammelt Feedback aus der Community.',
-    image: 'https://images.unsplash.com/photo-1544005313-94ddf0286df2?auto=format&fit=crop&w=600&q=80',
+    image:
+      'https://images.unsplash.com/photo-1544005313-94ddf0286df2?auto=format&fit=crop&w=600&q=80',
   },
 ];
 
@@ -31,15 +35,22 @@ export default function AboutPage() {
   return (
     <div className="bg-background min-h-screen">
       <section className="relative overflow-hidden border-b border-border bg-gradient-to-b from-primary/5 via-background to-background">
+        <div className="absolute inset-0 pointer-events-none opacity-40">
+          <Silk speed={5} scale={1} color="#7B7481" noiseIntensity={1.5} rotation={0} />
+        </div>
         <div className="absolute -top-32 -right-20 h-64 w-64 rounded-full bg-primary/20 blur-3xl animate-pulse" />
         <div className="container mx-auto px-4 py-16 lg:py-24 relative z-10 grid gap-10 md:grid-cols-2 items-center">
           <div className="space-y-6">
-            <p className="text-sm uppercase tracking-[0.3em] text-primary font-semibold">Über uns</p>
+            <p className="text-sm uppercase tracking-[0.3em] text-primary font-semibold">
+              Über uns
+            </p>
             <h1 className="text-4xl md:text-5xl font-display font-bold leading-tight">
               Wir feiern die verrückteste Liebe der Welt: die zu unseren Katzen.
             </h1>
             <p className="text-lg text-text-secondary">
-              Purriosity ist ein Herzensprojekt. Wir kuratieren Fundstücke, erzählen Geschichten und schaffen einen digitalen Spielplatz für alle, die ihre Katzen mehr feiern wollen als alles andere.
+              Purriosity ist ein Herzensprojekt. Wir kuratieren Fundstücke, erzählen Geschichten und
+              schaffen einen digitalen Spielplatz für alle, die ihre Katzen mehr feiern wollen als
+              alles andere.
             </p>
             <div className="flex flex-wrap gap-4">
               <div className="flex items-center gap-2 px-4 py-2 rounded-full bg-card/80 shadow">
@@ -87,11 +98,26 @@ export default function AboutPage() {
       <section className="container mx-auto px-4 py-16">
         <div className="grid md:grid-cols-3 gap-6">
           {[
-            { icon: <Heart className="h-6 w-6 text-rose-500" />, label: 'Community-Liebe', value: '25k+' },
-            { icon: <Users className="h-6 w-6 text-primary" />, label: 'Empfohlene Shops', value: '120+' },
-            { icon: <PawPrint className="h-6 w-6 text-amber-500" />, label: 'Katze-l approved', value: '∞' },
+            {
+              icon: <Heart className="h-6 w-6 text-rose-500" />,
+              label: 'Community-Liebe',
+              value: '25k+',
+            },
+            {
+              icon: <Users className="h-6 w-6 text-primary" />,
+              label: 'Empfohlene Shops',
+              value: '120+',
+            },
+            {
+              icon: <PawPrint className="h-6 w-6 text-amber-500" />,
+              label: 'Katze-l approved',
+              value: '∞',
+            },
           ].map((stat) => (
-            <div key={stat.label} className="bg-card rounded-2xl border border-border/60 p-6 flex flex-col gap-2">
+            <div
+              key={stat.label}
+              className="bg-card rounded-2xl border border-border/60 p-6 flex flex-col gap-2"
+            >
               <div className="flex items-center gap-3 text-text-secondary text-sm font-semibold">
                 {stat.icon}
                 {stat.label}
@@ -104,18 +130,26 @@ export default function AboutPage() {
 
       <section className="container mx-auto px-4 pb-16">
         <div className="text-center max-w-2xl mx-auto mb-12">
-          <p className="uppercase text-xs tracking-[0.4em] text-primary font-semibold">Unser Team</p>
+          <p className="uppercase text-xs tracking-[0.4em] text-primary font-semibold">
+            Unser Team
+          </p>
           <h2 className="text-3xl font-display font-bold mt-2">Die Menschen hinter Purriosity</h2>
           <p className="text-text-secondary mt-4">
-            Wir sind kleine Katzennerds mit großen Ideen. Hier ist eine Auswahl des Kernteams – der Rest sitzt vermutlich gerade auf einem Karton.
+            Wir sind kleine Katzennerds mit großen Ideen. Hier ist eine Auswahl des Kernteams – der
+            Rest sitzt vermutlich gerade auf einem Karton.
           </p>
         </div>
         <div className="grid gap-8 md:grid-cols-3">
           {teamMembers.map((member) => (
-            <div key={member.name} className="bg-card rounded-3xl border border-border/60 shadow-sm overflow-hidden">
+            <div
+              key={member.name}
+              className="bg-card rounded-3xl border border-border/60 shadow-sm overflow-hidden"
+            >
               <img src={member.image} alt={member.name} className="h-60 w-full object-cover" />
               <div className="p-6 space-y-2">
-                <p className="text-sm uppercase tracking-wide text-primary font-semibold">{member.role}</p>
+                <p className="text-sm uppercase tracking-wide text-primary font-semibold">
+                  {member.role}
+                </p>
                 <h3 className="text-xl font-display font-bold">{member.name}</h3>
                 <p className="text-text-secondary text-sm">{member.bio}</p>
               </div>
@@ -127,14 +161,19 @@ export default function AboutPage() {
       <section className="bg-card border-y border-border/60">
         <div className="container mx-auto px-4 py-16 space-y-10">
           <div className="text-center">
-            <p className="text-xs uppercase tracking-[0.4em] text-primary font-semibold">Milestones</p>
+            <p className="text-xs uppercase tracking-[0.4em] text-primary font-semibold">
+              Milestones
+            </p>
             <h2 className="text-3xl font-display font-bold mt-2">Unser Weg</h2>
           </div>
           <div className="relative">
             <div className="absolute left-1/2 top-0 bottom-0 w-px bg-border hidden md:block" />
             <div className="grid gap-10 md:grid-cols-2">
               {milestones.map((item, index) => (
-                <div key={item.year} className={`bg-background border border-border/60 rounded-2xl p-6 shadow-sm ${index % 2 === 0 ? 'md:translate-y-6' : ''}`}>
+                <div
+                  key={item.year}
+                  className={`bg-background border border-border/60 rounded-2xl p-6 shadow-sm ${index % 2 === 0 ? 'md:translate-y-6' : ''}`}
+                >
                   <p className="text-primary font-semibold">{item.year}</p>
                   <p className="mt-2 text-lg font-display">{item.text}</p>
                 </div>
@@ -150,9 +189,12 @@ export default function AboutPage() {
           <div className="relative z-10 grid gap-8 md:grid-cols-2 items-center">
             <div>
               <p className="uppercase text-xs tracking-[0.4em] mb-4">Community</p>
-              <h2 className="text-3xl md:text-4xl font-display font-bold">Werde Teil der Purriosity-Crew</h2>
+              <h2 className="text-3xl md:text-4xl font-display font-bold">
+                Werde Teil der Purriosity-Crew
+              </h2>
               <p className="mt-4 text-lg">
-                Melde dich für den Newsletter an, teile Produkte mit uns oder schicke uns dein Lieblingsfoto – wir wollen alles sehen.
+                Melde dich für den Newsletter an, teile Produkte mit uns oder schicke uns dein
+                Lieblingsfoto – wir wollen alles sehen.
               </p>
             </div>
             <div className="flex flex-col gap-4">

@@ -1,3 +1,5 @@
+import ShinyText from '../ui/ShinyText';
+
 export default function HeroSection() {
   const scrollToGrid = () => {
     const gridElement = document.getElementById('product-grid');
@@ -14,7 +16,19 @@ export default function HeroSection() {
       <div className="relative z-10 max-w-4xl mx-auto space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-1000">
         {/* Main Claim */}
         <h1 className="font-display text-4xl md:text-6xl lg:text-7xl font-bold text-foreground mb-6 text-balance">
-          Die verrückteste Fundgrube für <span className="text-primary">Katzenfans</span>
+          Die verrückteste Fundgrube für{' '}
+          <ShinyText
+            text="Katzenfans"
+            speed={2}
+            delay={0}
+            color="#bb71dc"
+            shineColor="#EEC8FF"
+            spread={120}
+            direction="left"
+            yoyo={false}
+            pauseOnHover
+            disabled={false}
+          />
         </h1>
 
         {/* Subheadline */}

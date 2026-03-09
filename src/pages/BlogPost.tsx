@@ -107,7 +107,7 @@ export default function BlogPost() {
             {/* Content */}
             <div className="container mx-auto px-4 mt-12">
                 <div className="max-w-3xl mx-auto">
-                    <div className="prose prose-lg prose-neutral dark:prose-invert max-w-none">
+                    <div className="prose prose-lg prose-neutral dark:prose-invert max-w-none [&_img]:!rounded-2xl [&_img]:block [&_img]:h-auto [&_img]:max-w-full [&_img]:object-contain">
                         <ReactMarkdown
                             components={{
                                 h1: ({ ...props }) => <h1 className="text-3xl font-display font-bold text-foreground mt-8 mb-4" {...props} />,
@@ -142,14 +142,14 @@ export default function BlogPost() {
                                         ) : null;
                                     }
                                     return (
-                                        <span className="block my-8 rounded-2xl overflow-hidden shadow-lg bg-secondary/30">
+                                        <figure className="block my-8">
                                             <img
-                                                className="w-full h-auto object-contain max-h-[500px]"
+                                                className="block w-full h-auto max-h-[70vh] object-contain !rounded-2xl shadow-lg bg-secondary/20"
                                                 src={safeSrc}
                                                 alt={alt || ''}
                                             />
-                                            {alt && <span className="block text-center text-sm text-muted-foreground mt-2 italic">{alt}</span>}
-                                        </span>
+                                            {alt && <figcaption className="block text-center text-sm text-muted-foreground mt-2 italic">{alt}</figcaption>}
+                                        </figure>
                                     );
                                 },
                             }}
