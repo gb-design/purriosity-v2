@@ -3,7 +3,10 @@ import { useParams, Link } from 'react-router-dom';
 import ReactMarkdown from 'react-markdown';
 import { supabase } from '../lib/supabase';
 import { getSafeExternalUrl } from '../lib/security';
+import { parseImageFocus } from '../lib/imageFocus';
 import { Loader2, Calendar, User, ArrowLeft, Tag, Share2, Facebook, Twitter, Mail, Link as LinkIcon, Check } from 'lucide-react';
+import { motion } from 'motion/react';
+import { RevealItem, RevealSection } from '../components/motion/ScrollReveal';
 
 interface BlogPost {
     id: string;
@@ -62,7 +65,8 @@ export default function BlogPost() {
         );
     }
 
-    const safeCoverImage = getSafeExternalUrl(post.cover_image);
+    const parsedCoverImage = parseImageFocus(post.cover_image);
+    const safeCoverImage = getSafeExternalUrl(parsedCoverImage.cleanUrl);
 
     return (
         <article className="min-h-screen pb-20">
@@ -73,6 +77,7 @@ export default function BlogPost() {
                         src={safeCoverImage}
                         alt={post.title}
                         className="w-full h-full object-cover"
+                        style={{ objectPosition: `${parsedCoverImage.focusX}% ${parsedCoverImage.focusY}%` }}
                     />
                 ) : (
                     <div className="w-full h-full bg-secondary" aria-hidden="true" />
@@ -80,17 +85,21 @@ export default function BlogPost() {
                 <div className="absolute inset-0 bg-gradient-to-t from-background to-transparent opacity-90"></div>
 
                 <div className="absolute bottom-0 left-0 w-full p-4 md:p-12">
-                    <div className="container mx-auto max-w-3xl">
-                        <Link to="/blog" className="inline-flex items-center text-sm text-primary/80 hover:text-primary mb-6 transition-colors font-medium backdrop-blur-sm bg-background/30 px-3 py-1 rounded-full">
-                            <ArrowLeft className="h-4 w-4 mr-1" />
-                            Zurück zum Magazin
-                        </Link>
+                    <RevealSection className="container mx-auto max-w-3xl" amount={0.05}>
+                        <RevealItem>
+                            <Link to="/blog" className="inline-flex items-center text-sm text-primary/80 hover:text-primary mb-6 transition-colors font-medium backdrop-blur-sm bg-background/30 px-3 py-1 rounded-full">
+                                <ArrowLeft className="h-4 w-4 mr-1" />
+                                Zurück zum Magazin
+                            </Link>
+                        </RevealItem>
 
-                        <h1 className="text-3xl md:text-5xl font-display font-bold text-foreground mb-6 leading-tight">
-                            {post.title}
-                        </h1>
+                        <RevealItem>
+                            <h1 className="text-3xl md:text-5xl font-display font-bold text-foreground mb-6 leading-tight">
+                                {post.title}
+                            </h1>
+                        </RevealItem>
 
-                        <div className="flex flex-wrap items-center gap-6 text-sm text-muted-foreground">
+                        <RevealItem soft className="flex flex-wrap items-center gap-6 text-sm text-muted-foreground">
                             <div className="flex items-center gap-2 bg-background/50 px-3 py-1.5 rounded-full backdrop-blur-md">
                                 <User className="h-4 w-4" />
                                 <span>{post.author_name}</span>
@@ -99,21 +108,65 @@ export default function BlogPost() {
                                 <Calendar className="h-4 w-4" />
                                 <span>{new Date(post.published_at).toLocaleDateString('de-DE')}</span>
                             </div>
-                        </div>
-                    </div>
+                        </RevealItem>
+                    </RevealSection>
                 </div>
             </div>
 
             {/* Content */}
             <div className="container mx-auto px-4 mt-12">
                 <div className="max-w-3xl mx-auto">
-                    <div className="prose prose-lg prose-neutral dark:prose-invert max-w-none [&_img]:!rounded-2xl [&_img]:block [&_img]:h-auto [&_img]:max-w-full [&_img]:object-contain">
+                    <RevealSection className="prose prose-lg prose-neutral dark:prose-invert max-w-none [&_img]:!rounded-2xl [&_img]:block [&_img]:h-auto [&_img]:max-w-full [&_img]:object-contain">
                         <ReactMarkdown
                             components={{
-                                h1: ({ ...props }) => <h1 className="text-3xl font-display font-bold text-foreground mt-8 mb-4" {...props} />,
-                                h2: ({ ...props }) => <h2 className="text-2xl font-display font-bold text-foreground mt-8 mb-4 border-l-4 border-primary pl-4" {...props} />,
-                                h3: ({ ...props }) => <h3 className="text-xl font-display font-bold text-foreground mt-6 mb-3" {...props} />,
-                                p: ({ ...props }) => <p className="text-lg leading-relaxed text-muted-foreground mb-6" {...props} />,
+                                h1: ({ children, ...props }) => (
+                                    <motion.div
+                                        initial={{ opacity: 0, y: 20 }}
+                                        whileInView={{ opacity: 1, y: 0 }}
+                                        viewport={{ once: true, amount: 0.85 }}
+                                        transition={{ duration: 0.45, ease: [0.22, 1, 0.36, 1] }}
+                                    >
+                                        <h1 className="text-3xl font-display font-bold text-foreground mt-8 mb-4" {...props}>
+                                            {children}
+                                        </h1>
+                                    </motion.div>
+                                ),
+                                h2: ({ children, ...props }) => (
+                                    <motion.div
+                                        initial={{ opacity: 0, y: 20 }}
+                                        whileInView={{ opacity: 1, y: 0 }}
+                                        viewport={{ once: true, amount: 0.85 }}
+                                        transition={{ duration: 0.45, ease: [0.22, 1, 0.36, 1] }}
+                                    >
+                                        <h2 className="text-2xl font-display font-bold text-foreground mt-8 mb-4 border-l-4 border-primary pl-4" {...props}>
+                                            {children}
+                                        </h2>
+                                    </motion.div>
+                                ),
+                                h3: ({ children, ...props }) => (
+                                    <motion.div
+                                        initial={{ opacity: 0, y: 16 }}
+                                        whileInView={{ opacity: 1, y: 0 }}
+                                        viewport={{ once: true, amount: 0.85 }}
+                                        transition={{ duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
+                                    >
+                                        <h3 className="text-xl font-display font-bold text-foreground mt-6 mb-3" {...props}>
+                                            {children}
+                                        </h3>
+                                    </motion.div>
+                                ),
+                                p: ({ children, ...props }) => (
+                                    <motion.div
+                                        initial={{ opacity: 0, y: 14 }}
+                                        whileInView={{ opacity: 1, y: 0 }}
+                                        viewport={{ once: true, amount: 0.8 }}
+                                        transition={{ duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
+                                    >
+                                        <p className="text-lg leading-relaxed text-muted-foreground mb-6" {...props}>
+                                            {children}
+                                        </p>
+                                    </motion.div>
+                                ),
                                 ul: ({ ...props }) => <ul className="list-disc list-inside space-y-2 mb-6 ml-4 text-muted-foreground" {...props} />,
                                 ol: ({ ...props }) => <ol className="list-decimal list-inside space-y-2 mb-6 ml-4 text-muted-foreground" {...props} />,
                                 li: ({ ...props }) => <li className="pl-2" {...props} />,
@@ -156,18 +209,18 @@ export default function BlogPost() {
                         >
                             {post.content}
                         </ReactMarkdown>
-                    </div>
+                    </RevealSection>
 
                     {/* Share & Tags */}
-                    <div className="mt-16 pt-8 border-t border-border">
+                    <RevealSection className="mt-16 pt-8 border-t border-border">
 
                         <div className="flex flex-col md:flex-row md:items-center justify-between gap-8 mb-8">
-                            <h3 className="text-lg font-bold flex items-center gap-2">
+                            <RevealItem className="text-lg font-bold flex items-center gap-2">
                                 <Share2 className="h-5 w-5 text-primary" />
-                                Beitrag teilen
-                            </h3>
+                                <span>Beitrag teilen</span>
+                            </RevealItem>
                             <div className="flex gap-2">
-                                <button
+                                <motion.button
                                     onClick={() => {
                                         navigator.clipboard.writeText(window.location.href);
                                         setShowCopyFeedback(true);
@@ -176,8 +229,10 @@ export default function BlogPost() {
                                     className={`p-3 rounded-full transition-all relative ${showCopyFeedback
                                         ? 'bg-green-100 text-green-600'
                                         : 'bg-secondary hover:bg-secondary/80 text-muted-foreground hover:text-foreground'
-                                        }`}
+                                    }`}
                                     title="Link kopieren"
+                                    whileHover={{ y: -2, scale: 1.03 }}
+                                    whileTap={{ scale: 0.96 }}
                                 >
                                     {showCopyFeedback ? (
                                         <Check className="h-5 w-5" />
@@ -191,45 +246,61 @@ export default function BlogPost() {
                                             Kopiert!
                                         </span>
                                     )}
-                                </button>
-                                <a
+                                </motion.button>
+                                <motion.a
                                     href={`https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(window.location.href)}`}
                                     target="_blank"
                                     rel="noopener noreferrer"
                                     className="p-3 rounded-full bg-secondary hover:bg-[#1877F2]/10 hover:text-[#1877F2] transition-colors text-muted-foreground"
                                     title="Auf Facebook teilen"
+                                    whileHover={{ y: -2, scale: 1.03 }}
+                                    whileTap={{ scale: 0.96 }}
                                 >
                                     <Facebook className="h-5 w-5" />
-                                </a>
-                                <a
+                                </motion.a>
+                                <motion.a
                                     href={`https://twitter.com/intent/tweet?url=${encodeURIComponent(window.location.href)}&text=${encodeURIComponent(post.title)}`}
                                     target="_blank"
                                     rel="noopener noreferrer"
                                     className="p-3 rounded-full bg-secondary hover:bg-[#1DA1F2]/10 hover:text-[#1DA1F2] transition-colors text-muted-foreground"
                                     title="Auf Twitter teilen"
+                                    whileHover={{ y: -2, scale: 1.03 }}
+                                    whileTap={{ scale: 0.96 }}
                                 >
                                     <Twitter className="h-5 w-5" />
-                                </a>
-                                <a
+                                </motion.a>
+                                <motion.a
                                     href={`mailto:?subject=${encodeURIComponent(post.title)}&body=Schau dir diesen Artikel an: ${encodeURIComponent(window.location.href)}`}
                                     className="p-3 rounded-full bg-secondary hover:bg-primary/10 hover:text-primary transition-colors text-muted-foreground"
                                     title="Per E-Mail senden"
+                                    whileHover={{ y: -2, scale: 1.03 }}
+                                    whileTap={{ scale: 0.96 }}
                                 >
                                     <Mail className="h-5 w-5" />
-                                </a>
+                                </motion.a>
                             </div>
                         </div>
 
                         {/* Tags Footer */}
-                        <div className="flex flex-wrap gap-2">
+                        <RevealSection className="flex flex-wrap gap-2" amount={0.25}>
                             {post.tags.map(tag => (
-                                <span key={tag} className="inline-flex items-center px-3 py-1 rounded-full bg-secondary text-secondary-foreground text-sm">
+                                <RevealItem key={tag} soft className="inline-flex items-center px-3 py-1 rounded-full bg-secondary text-secondary-foreground text-sm">
                                     <Tag className="h-3 w-3 mr-2" />
                                     {tag}
-                                </span>
+                                </RevealItem>
                             ))}
-                        </div>
-                    </div>
+                        </RevealSection>
+
+                        <RevealItem className="mt-8">
+                            <Link
+                                to="/blog"
+                                className="inline-flex items-center text-sm text-primary/80 hover:text-primary transition-colors font-medium backdrop-blur-sm bg-background/30 px-3 py-1 rounded-full"
+                            >
+                                <ArrowLeft className="h-4 w-4 mr-1" />
+                                Zurück zum Magazin
+                            </Link>
+                        </RevealItem>
+                    </RevealSection>
                 </div>
             </div>
         </article>

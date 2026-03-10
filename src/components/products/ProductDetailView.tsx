@@ -304,7 +304,7 @@ export default function ProductDetailView({
             {isModal && (
               <button
                 onClick={() => navigate(-1)}
-                className="fixed top-4 right-4 z-[120] p-2 bg-black/50 text-white rounded-full backdrop-blur transition-colors"
+                className="fixed top-4 right-4 z-[120] p-2 bg-black/50 text-white rounded-full backdrop-blur transition-colors md:hidden"
               >
                 <X className="w-6 h-6" />
               </button>

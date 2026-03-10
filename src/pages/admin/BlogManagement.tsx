@@ -1,6 +1,7 @@
 import { useState, useEffect, useMemo, useRef, useCallback } from 'react';
 import AdminLayout from '../../components/admin/AdminLayout';
 import { supabase } from '../../lib/supabase';
+import { parseImageFocus, withImageFocus } from '../../lib/imageFocus';
 import SimpleMDE from 'react-simplemde-editor';
 import EasyMDE from 'easymde';
 import 'easymde/dist/easymde.min.css';
@@ -42,6 +43,8 @@ export default function BlogManagement() {
   const [isSaving, setIsSaving] = useState(false);
   const [isCoverUploading, setIsCoverUploading] = useState(false);
   const [isInlineUploading, setIsInlineUploading] = useState(false);
+  const [coverFocusX, setCoverFocusX] = useState(50);
+  const [coverFocusY, setCoverFocusY] = useState(50);
   const inlineImageInputRef = useRef<HTMLInputElement | null>(null);
   const mdeInstanceRef = useRef<EasyMDE | null>(null);
 
@@ -111,10 +114,15 @@ export default function BlogManagement() {
 
   const handleOpenForm = (post: BlogPost | null = null) => {
     if (post) {
+      const parsedCover = parseImageFocus(post.cover_image || '');
       setEditingPost(post);
-      setFormData(post);
+      setCoverFocusX(parsedCover.focusX);
+      setCoverFocusY(parsedCover.focusY);
+      setFormData({ ...post, cover_image: parsedCover.cleanUrl });
     } else {
       setEditingPost(null);
+      setCoverFocusX(50);
+      setCoverFocusY(50);
       setFormData({
         title: '',
         slug: '',
@@ -141,6 +149,9 @@ export default function BlogManagement() {
       // Auto-generate slug if missing
       const finalData = {
         ...formData,
+        cover_image: formData.cover_image
+          ? withImageFocus(formData.cover_image, coverFocusX, coverFocusY)
+          : '',
         slug:
           formData.slug ||
           formData.title
@@ -320,6 +331,8 @@ export default function BlogManagement() {
     setIsCoverUploading(true);
     try {
       const publicUrl = await uploadBlogImage(file, 'cover');
+      setCoverFocusX(50);
+      setCoverFocusY(50);
       setFormData((prev) => ({ ...prev, cover_image: publicUrl }));
     } catch (error) {
       console.error('Error uploading image:', error);
@@ -370,6 +383,8 @@ export default function BlogManagement() {
     []
   );
 
+  const coverPreview = parseImageFocus(formData.cover_image || '');
+
   return (
     <AdminLayout>
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-10">
@@ -411,67 +426,71 @@ export default function BlogManagement() {
             Keine Beiträge gefunden.
           </div>
         ) : (
-          filteredPosts.map((post) => (
-            <div
-              key={post.id}
-              className="bg-card border border-border rounded-2xl p-6 flex flex-col md:flex-row gap-6 hover:shadow-lg transition-all group"
-            >
-              <div className="w-full md:w-48 h-32 rounded-xl bg-muted overflow-hidden flex-shrink-0 border border-border">
-                {post.cover_image ? (
-                  <img
-                    src={post.cover_image}
-                    alt=""
-                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-                  />
-                ) : (
-                  <div className="w-full h-full flex items-center justify-center text-muted-foreground">
-                    <FileText className="h-8 w-8" />
-                  </div>
-                )}
-              </div>
-              <div className="flex-1 min-w-0">
-                <div className="flex items-center gap-4 text-xs text-muted-foreground mb-2">
-                  <span className="flex items-center gap-1">
-                    <Calendar className="h-3 w-3" />{' '}
-                    {new Date(post.published_at).toLocaleDateString('de-DE')}
-                  </span>
-                  <span className="flex items-center gap-1">
-                    <UserIcon className="h-3 w-3" /> {post.author_name}
-                  </span>
+          filteredPosts.map((post) => {
+            const parsedCover = parseImageFocus(post.cover_image || '');
+            return (
+              <div
+                key={post.id}
+                className="bg-card border border-border rounded-2xl p-6 flex flex-col md:flex-row gap-6 hover:shadow-lg transition-all group"
+              >
+                <div className="w-full md:w-48 h-32 rounded-xl bg-muted overflow-hidden flex-shrink-0 border border-border">
+                  {parsedCover.cleanUrl ? (
+                    <img
+                      src={parsedCover.cleanUrl}
+                      alt=""
+                      className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                      style={{ objectPosition: `${parsedCover.focusX}% ${parsedCover.focusY}%` }}
+                    />
+                  ) : (
+                    <div className="w-full h-full flex items-center justify-center text-muted-foreground">
+                      <FileText className="h-8 w-8" />
+                    </div>
+                  )}
                 </div>
-                <h3 className="text-xl font-bold mb-2 group-hover:text-primary transition-colors truncate">
-                  {post.title}
-                </h3>
-                <p className="text-sm text-muted-foreground line-clamp-2 mb-4">{post.excerpt}</p>
-                <div className="flex flex-wrap gap-2">
-                  {post.tags.map((tag) => (
-                    <span
-                      key={tag}
-                      className="text-[10px] px-2 py-0.5 bg-secondary rounded-full border border-border uppercase font-bold tracking-wider"
-                    >
-                      {tag}
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center gap-4 text-xs text-muted-foreground mb-2">
+                    <span className="flex items-center gap-1">
+                      <Calendar className="h-3 w-3" />{' '}
+                      {new Date(post.published_at).toLocaleDateString('de-DE')}
                     </span>
-                  ))}
+                    <span className="flex items-center gap-1">
+                      <UserIcon className="h-3 w-3" /> {post.author_name}
+                    </span>
+                  </div>
+                  <h3 className="text-xl font-bold mb-2 group-hover:text-primary transition-colors truncate">
+                    {post.title}
+                  </h3>
+                  <p className="text-sm text-muted-foreground line-clamp-2 mb-4">{post.excerpt}</p>
+                  <div className="flex flex-wrap gap-2">
+                    {post.tags.map((tag) => (
+                      <span
+                        key={tag}
+                        className="text-[10px] px-2 py-0.5 bg-secondary rounded-full border border-border uppercase font-bold tracking-wider"
+                      >
+                        {tag}
+                      </span>
+                    ))}
+                  </div>
+                </div>
+                <div className="flex md:flex-col justify-end gap-2 border-t md:border-t-0 md:border-l border-border pt-4 md:pt-0 md:pl-6">
+                  <button
+                    onClick={() => handleOpenForm(post)}
+                    className="flex-1 md:flex-none p-3 hover:bg-primary/10 rounded-xl text-primary transition-all flex items-center justify-center gap-2 font-bold text-sm"
+                  >
+                    <Edit2 className="h-4 w-4" />
+                    Edit
+                  </button>
+                  <button
+                    onClick={() => handleDelete(post.id)}
+                    className="flex-1 md:flex-none p-3 hover:bg-destructive/10 rounded-xl text-destructive transition-all flex items-center justify-center gap-2 font-bold text-sm"
+                  >
+                    <Trash2 className="h-4 w-4" />
+                    Löschen
+                  </button>
                 </div>
               </div>
-              <div className="flex md:flex-col justify-end gap-2 border-t md:border-t-0 md:border-l border-border pt-4 md:pt-0 md:pl-6">
-                <button
-                  onClick={() => handleOpenForm(post)}
-                  className="flex-1 md:flex-none p-3 hover:bg-primary/10 rounded-xl text-primary transition-all flex items-center justify-center gap-2 font-bold text-sm"
-                >
-                  <Edit2 className="h-4 w-4" />
-                  Edit
-                </button>
-                <button
-                  onClick={() => handleDelete(post.id)}
-                  className="flex-1 md:flex-none p-3 hover:bg-destructive/10 rounded-xl text-destructive transition-all flex items-center justify-center gap-2 font-bold text-sm"
-                >
-                  <Trash2 className="h-4 w-4" />
-                  Löschen
-                </button>
-              </div>
-            </div>
-          ))
+            );
+          })
         )}
       </div>
 
@@ -557,14 +576,17 @@ export default function BlogManagement() {
                 {/* Right Column: Sidebar */}
                 <div className="space-y-8">
                   <div>
-                    <label className="block text-sm font-bold mb-3">Vorschaubild</label>
+                    <label className="block text-sm font-bold mb-3">
+                      Vorschaubild <span className="text-xs font-medium text-muted-foreground">(empfohlen: 2400 × 1350 px, 16:9)</span>
+                    </label>
                     <div className="space-y-4">
                       <div className="aspect-video rounded-2xl bg-muted border-2 border-dashed border-border flex items-center justify-center overflow-hidden relative group">
-                        {formData.cover_image ? (
+                        {coverPreview.cleanUrl ? (
                           <img
-                            src={formData.cover_image}
+                            src={coverPreview.cleanUrl}
                             alt="Preview"
                             className="w-full h-full object-cover"
+                            style={{ objectPosition: `${coverFocusX}% ${coverFocusY}%` }}
                           />
                         ) : (
                           <div className="text-center p-4">
@@ -591,9 +613,50 @@ export default function BlogManagement() {
                         type="text"
                         value={formData.cover_image}
                         onChange={(e) => setFormData({ ...formData, cover_image: e.target.value })}
+                        onBlur={() => {
+                          const parsed = parseImageFocus(formData.cover_image || '');
+                          setCoverFocusX(parsed.focusX);
+                          setCoverFocusY(parsed.focusY);
+                          setFormData((prev) => ({ ...prev, cover_image: parsed.cleanUrl }));
+                        }}
                         className="w-full px-4 py-2 bg-muted border border-border rounded-xl text-xs font-mono"
                         placeholder="Oder Bild-URL einfügen..."
                       />
+                      {formData.cover_image && (
+                        <div className="rounded-2xl border border-border bg-muted/40 p-3 space-y-3">
+                          <p className="text-xs font-semibold text-muted-foreground">
+                            Bildausschnitt fuer Hero festlegen
+                          </p>
+                          <div className="space-y-1.5">
+                            <div className="flex items-center justify-between text-[11px] text-muted-foreground">
+                              <span>Horizontale Position</span>
+                              <span>{Math.round(coverFocusX)}%</span>
+                            </div>
+                            <input
+                              type="range"
+                              min={0}
+                              max={100}
+                              value={coverFocusX}
+                              onChange={(e) => setCoverFocusX(Number(e.target.value))}
+                              className="w-full accent-primary"
+                            />
+                          </div>
+                          <div className="space-y-1.5">
+                            <div className="flex items-center justify-between text-[11px] text-muted-foreground">
+                              <span>Vertikale Position</span>
+                              <span>{Math.round(coverFocusY)}%</span>
+                            </div>
+                            <input
+                              type="range"
+                              min={0}
+                              max={100}
+                              value={coverFocusY}
+                              onChange={(e) => setCoverFocusY(Number(e.target.value))}
+                              className="w-full accent-primary"
+                            />
+                          </div>
+                        </div>
+                      )}
                     </div>
                   </div>
 

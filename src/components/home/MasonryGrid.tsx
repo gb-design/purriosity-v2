@@ -1,4 +1,5 @@
 import Masonry from 'react-masonry-css';
+import { motion } from 'motion/react';
 import ProductCard from '../products/ProductCard';
 import type { Product } from '../../types/product';
 
@@ -32,16 +33,45 @@ export default function MasonryGrid({ products }: MasonryGridProps) {
     const productIds = products.map((product) => product.id);
 
     return (
-        <div id="product-grid" className="container mx-auto px-4 py-8">
+        <motion.div
+            id="product-grid"
+            className="container mx-auto px-4 py-8"
+            initial="hidden"
+            whileInView="visible"
+            viewport={{ once: true, amount: 0.08, margin: '0px 0px -100px 0px' }}
+            variants={{
+                hidden: {},
+                visible: {
+                    transition: {
+                        staggerChildren: 0.04,
+                    },
+                },
+            }}
+        >
             <Masonry
                 breakpointCols={breakpointColumns}
                 className="flex -ml-4 w-auto"
                 columnClassName="pl-4 bg-clip-padding"
             >
                 {products.map((product, index) => (
-                    <ProductCard key={product.id} product={product} productIds={productIds} productIndex={index} />
+                    <motion.div
+                        key={product.id}
+                        variants={{
+                            hidden: { opacity: 0, y: 24 },
+                            visible: {
+                                opacity: 1,
+                                y: 0,
+                                transition: {
+                                    duration: 0.45,
+                                    ease: [0.22, 1, 0.36, 1],
+                                },
+                            },
+                        }}
+                    >
+                        <ProductCard product={product} productIds={productIds} productIndex={index} />
+                    </motion.div>
                 ))}
             </Masonry>
-        </div>
+        </motion.div>
     );
 }

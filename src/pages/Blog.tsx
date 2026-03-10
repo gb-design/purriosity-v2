@@ -2,7 +2,9 @@ import { useState, useEffect, useMemo } from 'react';
 import { Link } from 'react-router-dom';
 import { supabase } from '../lib/supabase';
 import { getSafeExternalUrl } from '../lib/security';
+import { parseImageFocus } from '../lib/imageFocus';
 import { Loader2, Calendar, User, LayoutGrid, List, Search, ArrowDownUp, X } from 'lucide-react';
+import { RevealItem, RevealSection } from '../components/motion/ScrollReveal';
 
 interface BlogPost {
     id: string;
@@ -82,6 +84,7 @@ export default function Blog() {
     }, [posts, query, selectedTag, sortBy]);
 
     const featuredPost = visiblePosts[0];
+    const featuredImage = featuredPost ? parseImageFocus(featuredPost.cover_image) : null;
     const restPosts = visiblePosts.slice(1);
     const isSingleResult = visiblePosts.length === 1;
 
@@ -98,21 +101,28 @@ export default function Blog() {
             <div className="bg-pattern-overlay opacity-35" />
 
             <div className="relative z-10 container mx-auto px-4 py-10 md:py-14">
-                <div className="max-w-5xl mx-auto text-center">
-                    <p className="inline-flex rounded-full border border-primary/35 bg-primary/10 px-4 py-1 text-xs font-semibold uppercase tracking-[0.18em] text-primary">
-                        Magazin
-                    </p>
-                    <h1 className="mt-4 text-4xl md:text-6xl font-display font-bold text-foreground text-balance">
-                        Das Purr-Magazin
-                    </h1>
-                    <p className="mt-4 text-base md:text-xl text-text-secondary max-w-3xl mx-auto">
-                        Geschichten, Tipps und Verruecktes aus der Welt der Katzen. Finde schneller die passenden Artikel mit Sortierung, Filter und Ansichtswahl.
-                    </p>
-                </div>
+                <RevealSection className="max-w-5xl mx-auto text-center">
+                    <RevealItem>
+                        <p className="inline-flex rounded-full border border-primary/35 bg-primary/10 px-4 py-1 text-xs font-semibold uppercase tracking-[0.18em] text-primary">
+                            Magazin
+                        </p>
+                    </RevealItem>
+                    <RevealItem>
+                        <h1 className="mt-4 text-4xl md:text-6xl font-display font-bold text-foreground text-balance">
+                            Das Purr-Magazin
+                        </h1>
+                    </RevealItem>
+                    <RevealItem soft>
+                        <p className="mt-4 text-base md:text-xl text-text-secondary max-w-3xl mx-auto">
+                            Geschichten, Tipps und Verruecktes aus der Welt der Katzen. Finde schneller
+                            die passenden Artikel mit Sortierung, Filter und Ansichtswahl.
+                        </p>
+                    </RevealItem>
+                </RevealSection>
             </div>
 
             <div className="relative z-10 container mx-auto px-4 pb-16">
-                <div className="rounded-3xl border border-border bg-card/85 backdrop-blur-sm p-4 md:p-6 shadow-sm">
+                <RevealSection className="rounded-3xl border border-border bg-card/85 backdrop-blur-sm p-4 md:p-6 shadow-sm">
                     <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
                         <div className="flex-1 flex flex-col gap-3 md:flex-row">
                             <div className="relative flex-1">
@@ -191,10 +201,10 @@ export default function Blog() {
                     <div className="mt-4 text-sm text-text-secondary">
                         {visiblePosts.length} {visiblePosts.length === 1 ? 'Artikel' : 'Artikel'} gefunden
                     </div>
-                </div>
+                </RevealSection>
 
                 {visiblePosts.length === 0 ? (
-                    <div className="rounded-3xl border border-dashed border-border bg-card mt-8 p-10 text-center">
+                    <RevealSection className="rounded-3xl border border-dashed border-border bg-card mt-8 p-10 text-center">
                         <h2 className="text-xl font-semibold text-foreground">Keine Treffer</h2>
                         <p className="mt-2 text-text-secondary">
                             Passe Suche oder Filter an, um mehr Artikel zu sehen.
@@ -209,157 +219,172 @@ export default function Blog() {
                         >
                             Filter zuruecksetzen
                         </button>
-                    </div>
+                    </RevealSection>
                 ) : (
                     <>
                         {featuredPost && (
-                            <Link
-                                to={`/blog/${featuredPost.slug}`}
-                                className={`group mt-8 block overflow-hidden rounded-3xl border border-border bg-card shadow-sm hover:shadow-md transition-all ${isSingleResult ? 'lg:max-h-[460px]' : ''
-                                    }`}
-                            >
-                                <div className={`grid lg:grid-cols-[1.2fr_1fr] ${isSingleResult ? 'lg:h-[460px]' : ''}`}>
-                                    <div className="aspect-[16/10] md:aspect-[16/9] lg:aspect-auto lg:h-full overflow-hidden bg-secondary">
-                                        {getSafeExternalUrl(featuredPost.cover_image) ? (
-                                            <img
-                                                src={getSafeExternalUrl(featuredPost.cover_image) || ''}
-                                                alt={featuredPost.title}
-                                                className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
-                                            />
-                                        ) : (
-                                            <div className="w-full h-full bg-secondary" aria-hidden="true" />
-                                        )}
-                                    </div>
-                                    <div className="p-6 md:p-8 flex flex-col overflow-hidden">
-                                        <div className="flex items-center gap-2 mb-4">
-                                            <span className="inline-flex rounded-full bg-primary/12 border border-primary/20 px-3 py-1 text-xs font-semibold text-primary">
-                                                Featured
-                                            </span>
-                                            {featuredPost.tags?.slice(0, 1).map((tag) => (
-                                                <span key={tag} className="inline-flex rounded-full bg-secondary px-3 py-1 text-xs font-medium text-secondary-foreground">
-                                                    {tag}
+                            <RevealSection amount={0.12}>
+                                <Link
+                                    to={`/blog/${featuredPost.slug}`}
+                                    className={`group mt-8 block overflow-hidden rounded-3xl border border-border bg-card shadow-sm hover:shadow-md transition-all ${isSingleResult ? 'lg:max-h-[460px]' : ''
+                                        }`}
+                                >
+                                    <div className={`grid lg:grid-cols-[1.2fr_1fr] ${isSingleResult ? 'lg:h-[460px]' : ''}`}>
+                                        <div className="aspect-[16/10] md:aspect-[16/9] lg:aspect-auto lg:h-full overflow-hidden bg-secondary">
+                                            {getSafeExternalUrl(featuredImage?.cleanUrl) ? (
+                                                <img
+                                                    src={getSafeExternalUrl(featuredImage?.cleanUrl) || ''}
+                                                    alt={featuredPost.title}
+                                                    className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
+                                                    style={{ objectPosition: `${featuredImage?.focusX ?? 50}% ${featuredImage?.focusY ?? 50}%` }}
+                                                />
+                                            ) : (
+                                                <div className="w-full h-full bg-secondary" aria-hidden="true" />
+                                            )}
+                                        </div>
+                                        <div className="p-6 md:p-8 flex flex-col overflow-hidden">
+                                            <div className="flex items-center gap-2 mb-4">
+                                                <span className="inline-flex rounded-full bg-primary/12 border border-primary/20 px-3 py-1 text-xs font-semibold text-primary">
+                                                    Featured
                                                 </span>
-                                            ))}
-                                        </div>
-                                        <h2 className="text-2xl md:text-3xl font-display font-bold text-foreground group-hover:text-primary transition-colors text-balance">
-                                            {featuredPost.title}
-                                        </h2>
-                                        <p className="mt-3 text-text-secondary line-clamp-4">
-                                            {featuredPost.excerpt}
-                                        </p>
-                                        <div className="mt-auto pt-6 flex items-center justify-between text-xs text-text-secondary border-t border-border">
-                                            <div className="flex items-center gap-2">
-                                                <User className="h-3 w-3" />
-                                                <span>{featuredPost.author_name}</span>
+                                                {featuredPost.tags?.slice(0, 1).map((tag) => (
+                                                    <span key={tag} className="inline-flex rounded-full bg-secondary px-3 py-1 text-xs font-medium text-secondary-foreground">
+                                                        {tag}
+                                                    </span>
+                                                ))}
                                             </div>
-                                            <div className="flex items-center gap-2">
-                                                <Calendar className="h-3 w-3" />
-                                                <span>{new Date(featuredPost.published_at).toLocaleDateString('de-DE')}</span>
+                                            <h2 className="text-2xl md:text-3xl font-display font-bold text-foreground group-hover:text-primary transition-colors text-balance">
+                                                {featuredPost.title}
+                                            </h2>
+                                            <p className="mt-3 text-text-secondary line-clamp-4">
+                                                {featuredPost.excerpt}
+                                            </p>
+                                            <div className="mt-auto pt-6 flex items-center justify-between text-xs text-text-secondary border-t border-border">
+                                                <div className="flex items-center gap-2">
+                                                    <User className="h-3 w-3" />
+                                                    <span>{featuredPost.author_name}</span>
+                                                </div>
+                                                <div className="flex items-center gap-2">
+                                                    <Calendar className="h-3 w-3" />
+                                                    <span>{new Date(featuredPost.published_at).toLocaleDateString('de-DE')}</span>
+                                                </div>
                                             </div>
                                         </div>
                                     </div>
-                                </div>
-                            </Link>
+                                </Link>
+                            </RevealSection>
                         )}
 
                         {restPosts.length > 0 && viewMode === 'grid' && (
-                            <div className="mt-8 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                            <RevealSection className="mt-8 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                                 {restPosts.map((post) => {
-                                    const safeCoverImage = getSafeExternalUrl(post.cover_image);
+                                    const parsedCover = parseImageFocus(post.cover_image);
+                                    const safeCoverImage = getSafeExternalUrl(parsedCover.cleanUrl);
                                     return (
-                                        <Link
+                                        <RevealItem
                                             key={post.id}
-                                            to={`/blog/${post.slug}`}
-                                            className="group flex flex-col bg-card rounded-2xl overflow-hidden shadow-sm hover:shadow-md transition-all hover:-translate-y-1 border border-border"
+                                            className="h-full"
                                         >
-                                            <div className="aspect-[16/9] overflow-hidden bg-secondary">
-                                                {safeCoverImage ? (
-                                                    <img
-                                                        src={safeCoverImage}
-                                                        alt={post.title}
-                                                        className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
-                                                    />
-                                                ) : (
-                                                    <div className="w-full h-full bg-secondary" aria-hidden="true" />
-                                                )}
-                                            </div>
-                                            <div className="flex-1 p-5 flex flex-col">
-                                                <div className="flex flex-wrap gap-2 mb-3">
-                                                    {post.tags.slice(0, 2).map((tag) => (
-                                                        <span key={tag} className="text-xs font-medium px-2.5 py-1 bg-secondary text-secondary-foreground rounded-full">
-                                                            {tag}
-                                                        </span>
-                                                    ))}
+                                            <Link
+                                                to={`/blog/${post.slug}`}
+                                                className="group flex h-full flex-col bg-card rounded-2xl overflow-hidden shadow-sm hover:shadow-md transition-all hover:-translate-y-1 border border-border"
+                                            >
+                                                <div className="aspect-[16/9] overflow-hidden bg-secondary">
+                                                    {safeCoverImage ? (
+                                                        <img
+                                                            src={safeCoverImage}
+                                                            alt={post.title}
+                                                            className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+                                                            style={{ objectPosition: `${parsedCover.focusX}% ${parsedCover.focusY}%` }}
+                                                        />
+                                                    ) : (
+                                                        <div className="w-full h-full bg-secondary" aria-hidden="true" />
+                                                    )}
                                                 </div>
-                                                <h3 className="text-lg font-bold mb-2 line-clamp-2 group-hover:text-primary transition-colors">
-                                                    {post.title}
-                                                </h3>
-                                                <p className="text-text-secondary text-sm line-clamp-3 mb-5 flex-1">{post.excerpt}</p>
-                                                <div className="flex items-center justify-between text-xs text-text-secondary mt-auto border-t border-border pt-3">
-                                                    <div className="flex items-center gap-2">
-                                                        <User className="h-3 w-3" />
-                                                        <span>{post.author_name}</span>
+                                                <div className="flex-1 p-5 flex flex-col">
+                                                    <div className="flex flex-wrap gap-2 mb-3">
+                                                        {post.tags.slice(0, 2).map((tag) => (
+                                                            <span key={tag} className="text-xs font-medium px-2.5 py-1 bg-secondary text-secondary-foreground rounded-full">
+                                                                {tag}
+                                                            </span>
+                                                        ))}
                                                     </div>
-                                                    <div className="flex items-center gap-2">
-                                                        <Calendar className="h-3 w-3" />
-                                                        <span>{new Date(post.published_at).toLocaleDateString('de-DE')}</span>
+                                                    <h3 className="text-lg font-bold mb-2 line-clamp-2 group-hover:text-primary transition-colors">
+                                                        {post.title}
+                                                    </h3>
+                                                    <p className="text-text-secondary text-sm line-clamp-3 mb-5 flex-1">{post.excerpt}</p>
+                                                    <div className="flex items-center justify-between text-xs text-text-secondary mt-auto border-t border-border pt-3">
+                                                        <div className="flex items-center gap-2">
+                                                            <User className="h-3 w-3" />
+                                                            <span>{post.author_name}</span>
+                                                        </div>
+                                                        <div className="flex items-center gap-2">
+                                                            <Calendar className="h-3 w-3" />
+                                                            <span>{new Date(post.published_at).toLocaleDateString('de-DE')}</span>
+                                                        </div>
                                                     </div>
                                                 </div>
-                                            </div>
-                                        </Link>
+                                            </Link>
+                                        </RevealItem>
                                     );
                                 })}
-                            </div>
+                            </RevealSection>
                         )}
 
                         {restPosts.length > 0 && viewMode === 'list' && (
-                            <div className="mt-8 space-y-4">
+                            <RevealSection className="mt-8 space-y-4">
                                 {restPosts.map((post) => {
-                                    const safeCoverImage = getSafeExternalUrl(post.cover_image);
+                                    const parsedCover = parseImageFocus(post.cover_image);
+                                    const safeCoverImage = getSafeExternalUrl(parsedCover.cleanUrl);
                                     return (
-                                        <Link
+                                        <RevealItem
                                             key={post.id}
-                                            to={`/blog/${post.slug}`}
-                                            className="group grid grid-cols-[120px_1fr] md:grid-cols-[200px_1fr] gap-4 rounded-2xl border border-border bg-card p-3 md:p-4 hover:shadow-md transition-all"
+                                            className="h-full"
                                         >
-                                            <div className="overflow-hidden rounded-xl bg-secondary h-full min-h-[90px] md:min-h-[120px]">
-                                                {safeCoverImage ? (
-                                                    <img
-                                                        src={safeCoverImage}
-                                                        alt={post.title}
-                                                        className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
-                                                    />
-                                                ) : (
-                                                    <div className="w-full h-full bg-secondary" aria-hidden="true" />
-                                                )}
-                                            </div>
-                                            <div className="flex flex-col min-w-0">
-                                                <h3 className="text-base md:text-xl font-bold text-foreground group-hover:text-primary transition-colors line-clamp-2">
-                                                    {post.title}
-                                                </h3>
-                                                <p className="mt-2 text-sm text-text-secondary line-clamp-2 md:line-clamp-3">{post.excerpt}</p>
-                                                <div className="mt-3 flex flex-wrap gap-2">
-                                                    {post.tags.slice(0, 3).map((tag) => (
-                                                        <span key={tag} className="text-xs font-medium px-2 py-1 bg-secondary text-secondary-foreground rounded-full">
-                                                            {tag}
+                                            <Link
+                                                to={`/blog/${post.slug}`}
+                                                className="group grid grid-cols-[120px_1fr] md:grid-cols-[200px_1fr] gap-4 rounded-2xl border border-border bg-card p-3 md:p-4 hover:shadow-md transition-all"
+                                            >
+                                                <div className="overflow-hidden rounded-xl bg-secondary h-full min-h-[90px] md:min-h-[120px]">
+                                                    {safeCoverImage ? (
+                                                        <img
+                                                            src={safeCoverImage}
+                                                            alt={post.title}
+                                                            className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+                                                            style={{ objectPosition: `${parsedCover.focusX}% ${parsedCover.focusY}%` }}
+                                                        />
+                                                    ) : (
+                                                        <div className="w-full h-full bg-secondary" aria-hidden="true" />
+                                                    )}
+                                                </div>
+                                                <div className="flex flex-col min-w-0">
+                                                    <h3 className="text-base md:text-xl font-bold text-foreground group-hover:text-primary transition-colors line-clamp-2">
+                                                        {post.title}
+                                                    </h3>
+                                                    <p className="mt-2 text-sm text-text-secondary line-clamp-2 md:line-clamp-3">{post.excerpt}</p>
+                                                    <div className="mt-3 flex flex-wrap gap-2">
+                                                        {post.tags.slice(0, 3).map((tag) => (
+                                                            <span key={tag} className="text-xs font-medium px-2 py-1 bg-secondary text-secondary-foreground rounded-full">
+                                                                {tag}
+                                                            </span>
+                                                        ))}
+                                                    </div>
+                                                    <div className="mt-auto pt-3 flex items-center gap-4 text-xs text-text-secondary">
+                                                        <span className="inline-flex items-center gap-1.5">
+                                                            <User className="h-3 w-3" />
+                                                            {post.author_name}
                                                         </span>
-                                                    ))}
+                                                        <span className="inline-flex items-center gap-1.5">
+                                                            <Calendar className="h-3 w-3" />
+                                                            {new Date(post.published_at).toLocaleDateString('de-DE')}
+                                                        </span>
+                                                    </div>
                                                 </div>
-                                                <div className="mt-auto pt-3 flex items-center gap-4 text-xs text-text-secondary">
-                                                    <span className="inline-flex items-center gap-1.5">
-                                                        <User className="h-3 w-3" />
-                                                        {post.author_name}
-                                                    </span>
-                                                    <span className="inline-flex items-center gap-1.5">
-                                                        <Calendar className="h-3 w-3" />
-                                                        {new Date(post.published_at).toLocaleDateString('de-DE')}
-                                                    </span>
-                                                </div>
-                                            </div>
-                                        </Link>
+                                            </Link>
+                                        </RevealItem>
                                     );
                                 })}
-                            </div>
+                            </RevealSection>
                         )}
                     </>
                 )}
