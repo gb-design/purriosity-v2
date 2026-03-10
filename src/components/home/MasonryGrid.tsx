@@ -31,14 +31,15 @@ export default function MasonryGrid({ products }: MasonryGridProps) {
     }
 
     const productIds = products.map((product) => product.id);
+    const animationKey = productIds.join('|');
 
     return (
         <motion.div
+            key={animationKey}
             id="product-grid"
             className="container mx-auto px-4 py-8"
             initial="hidden"
-            whileInView="visible"
-            viewport={{ once: true, amount: 0.08, margin: '0px 0px -100px 0px' }}
+            animate="visible"
             variants={{
                 hidden: {},
                 visible: {

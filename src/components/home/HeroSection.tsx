@@ -1,5 +1,4 @@
 import ShinyText from '../ui/ShinyText';
-import { motion } from 'motion/react';
 import { RevealItem, RevealSection } from '../motion/ScrollReveal';
 
 export default function HeroSection() {
@@ -63,13 +62,7 @@ export default function HeroSection() {
 
         {/* Decorative Element (optional) */}
         <RevealItem>
-          <motion.div
-            className="mt-25 text-6xl"
-            animate={{ y: [0, -8, 0] }}
-            transition={{ duration: 2.6, repeat: Infinity, ease: 'easeInOut' }}
-          >
-            🐱
-          </motion.div>
+          <div className="mt-[2rem] md:mt-[1.5rem] text-6xl hero-cat-float">🐱</div>
         </RevealItem>
       </RevealSection>
     </section>

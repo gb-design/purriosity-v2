@@ -7,6 +7,15 @@ interface TagFilterProps {
   onToggle: (tag: string) => void;
 }
 
+const normalizeCategory = (value: string): string =>
+  value
+    .toLowerCase()
+    .trim()
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .replace(/[^a-z0-9\s]/g, ' ')
+    .replace(/\s+/g, ' ');
+
 export default function TagFilter({ selectedCategories, onToggle }: TagFilterProps) {
   const { categories, loading } = useCategories();
   const scrollRef = useRef<HTMLDivElement | null>(null);
@@ -124,9 +133,12 @@ export default function TagFilter({ selectedCategories, onToggle }: TagFilterPro
           >
             {options.map((category) => {
               const isAll = category.name === 'Alle';
+              const normalizedCategory = normalizeCategory(category.name);
               const isSelected = isAll
                 ? selectedCategories.length === 0
-                : selectedCategories.includes(category.name);
+                : selectedCategories.some(
+                    (selected) => normalizeCategory(selected) === normalizedCategory
+                  );
               return (
                 <button
                   key={category.id}
@@ -139,7 +151,7 @@ export default function TagFilter({ selectedCategories, onToggle }: TagFilterPro
                 >
                   <span className="text-base">{category.emoji}</span>
                   <span>{category.name}</span>
-                  {category.name !== 'Alle' && selectedCategories.includes(category.name) && (
+                  {category.name !== 'Alle' && isSelected && (
                     <X className="h-3 w-3" />
                   )}
                 </button>

@@ -1,0 +1,218 @@
+- generic [ref=e3]:
+  - banner [ref=e4]:
+    - generic [ref=e6]:
+      - link "Purriosity" [ref=e7] [cursor=pointer]:
+        - /url: /
+        - img "Purriosity" [ref=e8]
+      - generic [ref=e12]:
+        - img [ref=e13]
+        - searchbox "Suche nach Produkten..." [ref=e16]
+      - generic [ref=e17]:
+        - navigation [ref=e18]:
+          - link "Magazin" [ref=e19] [cursor=pointer]:
+            - /url: /blog
+          - link "Über uns" [ref=e20] [cursor=pointer]:
+            - /url: /about
+        - link "Login" [ref=e21] [cursor=pointer]:
+          - /url: /login?redirect=%2F
+          - img [ref=e22]
+          - generic [ref=e25]: Login
+        - button "Toggle theme" [ref=e26] [cursor=pointer]:
+          - img [ref=e27]
+  - main [ref=e29]:
+    - generic [ref=e30]:
+      - generic [ref=e32]:
+        - heading "Die verrückteste Fundgrube für Katzenfans" [level=1] [ref=e34]:
+          - text: Die verrückteste Fundgrube für
+          - generic [ref=e35]: Katzenfans
+        - paragraph [ref=e37]: Kuratierte Katzenprodukte, die du nirgendwo anders findest – von süß bis skurril, von praktisch bis luxuriös.
+        - generic [ref=e39]:
+          - button "Entdecke unsere Fundgrube" [ref=e40] [cursor=pointer]
+          - link "Unsere Story" [ref=e41] [cursor=pointer]:
+            - /url: /about
+        - generic [ref=e43]: 🐱
+      - generic [ref=e87]:
+        - button "✨ Alle" [ref=e88] [cursor=pointer]:
+          - generic [ref=e89]: ✨
+          - generic [ref=e90]: Alle
+        - button "🥰 Niedlich" [ref=e91] [cursor=pointer]:
+          - generic [ref=e92]: 🥰
+          - generic [ref=e93]: Niedlich
+        - button "🤪 Skurril" [ref=e94] [cursor=pointer]:
+          - generic [ref=e95]: 🤪
+          - generic [ref=e96]: Skurril
+        - button "🎾 Spielzeug" [ref=e97] [cursor=pointer]:
+          - generic [ref=e98]: 🎾
+          - generic [ref=e99]: Spielzeug
+        - button "🍽️ Fütterung" [ref=e100] [cursor=pointer]:
+          - generic [ref=e101]: 🍽️
+          - generic [ref=e102]: Fütterung
+        - button "👤 für Mensch" [ref=e103] [cursor=pointer]:
+          - generic [ref=e104]: 👤
+          - generic [ref=e105]: für Mensch
+        - button "🐾 für Tier" [ref=e106] [cursor=pointer]:
+          - generic [ref=e107]: 🐾
+          - generic [ref=e108]: für Tier
+        - button "😂 Lustig" [ref=e109] [cursor=pointer]:
+          - generic [ref=e110]: 😂
+          - generic [ref=e111]: Lustig
+        - button "🎁 Geschenke" [ref=e112] [cursor=pointer]:
+          - generic [ref=e113]: 🎁
+          - generic [ref=e114]: Geschenke
+        - button "🛋 Möbel" [ref=e115] [cursor=pointer]:
+          - generic [ref=e116]: 🛋
+          - generic [ref=e117]: Möbel
+        - button "🧴 Pflege" [ref=e118] [cursor=pointer]:
+          - generic [ref=e119]: 🧴
+          - generic [ref=e120]: Pflege
+        - button "🛠️ Nützliches" [ref=e121] [cursor=pointer]:
+          - generic [ref=e122]: 🛠️
+          - generic [ref=e123]: Nützliches
+        - button "👑 Luxus" [ref=e124] [cursor=pointer]:
+          - generic [ref=e125]: 👑
+          - generic [ref=e126]: Luxus
+        - button "👕 Kleidung" [ref=e127] [cursor=pointer]:
+          - generic [ref=e128]: 👕
+          - generic [ref=e129]: Kleidung
+        - button "🎛 Personaliserbar" [ref=e130] [cursor=pointer]:
+          - generic [ref=e131]: 🎛
+          - generic [ref=e132]: Personaliserbar
+        - button "🪀 Aktivität" [ref=e133] [cursor=pointer]:
+          - generic [ref=e134]: 🪀
+          - generic [ref=e135]: Aktivität
+      - generic [ref=e137]:
+        - generic [ref=e138]:
+          - link "Katzen-Folienballon XXL Katzen-Folienballon XXL XL-Folienballon im Katzen-Design. Ideal für Geburtstage, Motto-Partys oder als überraschendes Geschenk für Katzenliebhaber. Niedlich Skurril für Mensch Amazon 1" [ref=e140] [cursor=pointer]:
+            - /url: /product/10e61f1f-8366-45fc-8701-4ddf0e645384
+            - generic [ref=e141]:
+              - button [ref=e142]:
+                - img [ref=e143]
+              - img "Katzen-Folienballon XXL" [ref=e146]
+              - generic [ref=e148]:
+                - heading "Katzen-Folienballon XXL" [level=3] [ref=e149]
+                - paragraph [ref=e150]: XL-Folienballon im Katzen-Design. Ideal für Geburtstage, Motto-Partys oder als überraschendes Geschenk für Katzenliebhaber.
+                - generic [ref=e151]:
+                  - generic [ref=e152]: Niedlich
+                  - generic [ref=e153]: Skurril
+                  - generic [ref=e154]: für Mensch
+                - generic [ref=e156]: Amazon
+                - button "1" [ref=e158]:
+                  - img [ref=e159]
+                  - generic [ref=e161]: "1"
+          - link "Self-Cleaning Litter Box 3000 Self-Cleaning Litter Box 3000 Automated scooping. Example 3" [ref=e163] [cursor=pointer]:
+            - /url: /product/8081e75d-3693-4fb3-ada6-cb2698c7addf
+            - generic [ref=e164]:
+              - button [ref=e165]:
+                - img [ref=e166]
+              - img "Self-Cleaning Litter Box 3000" [ref=e169]
+              - generic [ref=e171]:
+                - heading "Self-Cleaning Litter Box 3000" [level=3] [ref=e172]
+                - paragraph [ref=e173]: Automated scooping.
+                - generic [ref=e175]: Example
+                - button "3" [ref=e177]:
+                  - img [ref=e178]
+                  - generic [ref=e180]: "3"
+        - generic [ref=e181]:
+          - link "Charmante Pfotenvase Charmante Pfotenvase Niedliches Cartoon-Design für die Dekoration von Zuhause und Büro, perfekt für das Wohnzimmer und den Schreibtisch Niedlich Skurril Möbel Temu 1" [ref=e183] [cursor=pointer]:
+            - /url: /product/4bbc3a20-5d29-4948-bafb-cc48caa19157
+            - generic [ref=e184]:
+              - button [ref=e185]:
+                - img [ref=e186]
+              - img "Charmante Pfotenvase" [ref=e189]
+              - generic [ref=e191]:
+                - heading "Charmante Pfotenvase" [level=3] [ref=e192]
+                - paragraph [ref=e193]: Niedliches Cartoon-Design für die Dekoration von Zuhause und Büro, perfekt für das Wohnzimmer und den Schreibtisch
+                - generic [ref=e194]:
+                  - generic [ref=e195]: Niedlich
+                  - generic [ref=e196]: Skurril
+                  - generic [ref=e197]: Möbel
+                - generic [ref=e199]: Temu
+                - button "1" [ref=e201]:
+                  - img [ref=e202]
+                  - generic [ref=e204]: "1"
+          - link "Telepathisches Katzen-Klavier 2.0 Telepathisches Katzen-Klavier 2.0 Musik aus Gedanken. für Mensch Möbel Skurril Example 2" [ref=e206] [cursor=pointer]:
+            - /url: /product/6dfad52d-284d-44f8-9203-c3cc41ba47bf
+            - generic [ref=e207]:
+              - button [ref=e208]:
+                - img [ref=e209]
+              - img "Telepathisches Katzen-Klavier 2.0" [ref=e212]
+              - generic [ref=e214]:
+                - heading "Telepathisches Katzen-Klavier 2.0" [level=3] [ref=e215]
+                - paragraph [ref=e216]: Musik aus Gedanken.
+                - generic [ref=e217]:
+                  - generic [ref=e218]: für Mensch
+                  - generic [ref=e219]: Möbel
+                  - generic [ref=e220]: Skurril
+                - generic [ref=e222]: Example
+                - button "2" [ref=e224]:
+                  - img [ref=e225]
+                  - generic [ref=e227]: "2"
+        - link "Catnip Banana Catnip Banana Potent catnip toy. Skurril für Tier Fütterung Example 3" [ref=e230] [cursor=pointer]:
+          - /url: /product/32f72f6d-55bf-4d0a-be24-53e6fa4dcda5
+          - generic [ref=e231]:
+            - button [ref=e232]:
+              - img [ref=e233]
+            - img "Catnip Banana" [ref=e236]
+            - generic [ref=e238]:
+              - heading "Catnip Banana" [level=3] [ref=e239]
+              - paragraph [ref=e240]: Potent catnip toy.
+              - generic [ref=e241]:
+                - generic [ref=e242]: Skurril
+                - generic [ref=e243]: für Tier
+                - generic [ref=e244]: Fütterung
+              - generic [ref=e246]: Example
+              - button "3" [ref=e248]:
+                - img [ref=e249]
+                - generic [ref=e251]: "3"
+        - link "Laser Robot Friend Laser Robot Friend Endless laser fun. Example 2" [ref=e254] [cursor=pointer]:
+          - /url: /product/2a0be9ab-3556-40be-801f-bf05f818e88d
+          - generic [ref=e255]:
+            - button [ref=e256]:
+              - img [ref=e257]
+            - img "Laser Robot Friend" [ref=e260]
+            - generic [ref=e262]:
+              - heading "Laser Robot Friend" [level=3] [ref=e263]
+              - paragraph [ref=e264]: Endless laser fun.
+              - generic [ref=e266]: Example
+              - button "2" [ref=e268]:
+                - img [ref=e269]
+                - generic [ref=e271]: "2"
+  - contentinfo [ref=e50]:
+    - generic [ref=e51]:
+      - generic [ref=e52]:
+        - generic [ref=e53]:
+          - img "Purriosity" [ref=e54]
+          - paragraph [ref=e55]: Die verrückteste Fundgrube für Katzenliebhaber. Kuratierte Produkte, die du nirgendwo anders findest.
+          - generic [ref=e56]:
+            - textbox "Deine E-Mail" [disabled] [ref=e57]
+            - button "Abonnieren" [disabled] [ref=e58]
+        - generic [ref=e59]:
+          - heading "Über uns" [level=3] [ref=e60]
+          - list [ref=e61]:
+            - listitem [ref=e62]:
+              - link "Unsere Story" [ref=e63] [cursor=pointer]:
+                - /url: /about
+            - listitem [ref=e64]:
+              - link "Disclaimer" [ref=e65] [cursor=pointer]:
+                - /url: /disclaimer
+            - listitem [ref=e66]:
+              - link "Impressum" [ref=e67] [cursor=pointer]:
+                - /url: /impressum
+            - listitem [ref=e68]:
+              - link "Datenschutz" [ref=e69] [cursor=pointer]:
+                - /url: /datenschutz
+        - generic [ref=e70]:
+          - heading "Folge uns" [level=3] [ref=e71]
+          - generic [ref=e72]:
+            - link "Instagram" [ref=e73] [cursor=pointer]:
+              - /url: "#"
+              - img [ref=e74]
+            - link "Facebook" [ref=e77] [cursor=pointer]:
+              - /url: "#"
+              - img [ref=e78]
+            - link "E-Mail" [ref=e80] [cursor=pointer]:
+              - /url: mailto:hello@purriosity.com
+              - img [ref=e81]
+      - generic [ref=e84]:
+        - paragraph [ref=e85]: © 2026 Purriosity. Alle Rechte vorbehalten.
+        - paragraph [ref=e86]: "* Affiliate-Links: Wir erhalten eine kleine Provision, wenn du über unsere Links einkaufst. Für dich entstehen keine zusätzlichen Kosten."

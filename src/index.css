@@ -135,6 +135,33 @@
 }
 
 @layer utilities {
+  @keyframes hero-cat-float-keyframes {
+    0% {
+      transform: translate3d(0, 0, 0) scale(1);
+    }
+    50% {
+      transform: translate3d(0, -9px, 0) scale(1.02);
+    }
+    100% {
+      transform: translate3d(0, 0, 0) scale(1);
+    }
+  }
+
+  .hero-cat-float {
+    animation: hero-cat-float-keyframes 3.2s cubic-bezier(0.32, 0, 0.2, 1) infinite;
+    will-change: transform;
+    transform: translateZ(0);
+    backface-visibility: hidden;
+    display: inline-block;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .hero-cat-float {
+      animation: none;
+      transform: none;
+    }
+  }
+
   .text-balance {
     text-wrap: balance;
   }
