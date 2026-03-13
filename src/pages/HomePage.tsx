@@ -5,6 +5,7 @@ import MasonryGrid from '../components/home/MasonryGrid';
 import { supabase } from '../lib/supabase';
 import type { Product } from '../types/product';
 import { mapDbProductToProduct } from '../lib/productMapper';
+import { Eye } from 'lucide-react';
 
 const normalizeCategory = (value: string): string => {
   const base = value
@@ -125,7 +126,21 @@ export default function HomePage() {
           <p className="text-text-secondary mt-2">Versuche einen anderen Filter!</p>
         </div>
       ) : (
-        <MasonryGrid products={filteredProducts} />
+        <>
+          <div className="container mx-auto px-4 pt-5 pb-1 flex items-center gap-2">
+            <span className="inline-flex items-center gap-1.5 text-xs font-medium px-2.5 py-1 rounded-full bg-primary/10 text-primary border border-primary/20">
+              <Eye className="h-3.5 w-3.5" aria-hidden="true" />
+              {selectedCategories.length > 0
+                ? <><span className="font-bold">{filteredProducts.length}</span><span className="text-primary/70"> von {products.length} Produkte</span></>
+                : <><span className="font-bold">{products.length}</span><span className="text-primary/70"> Produkte</span></>
+              }
+            </span>
+            {selectedCategories.length > 0 && (
+              <span className="text-xs text-text-secondary/60">gefiltert</span>
+            )}
+          </div>
+          <MasonryGrid products={filteredProducts} />
+        </>
       )}
     </div>
   );
