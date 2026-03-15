@@ -19,6 +19,7 @@ import {
   Image as ImageIcon,
   Upload,
   Images,
+  Star,
 } from 'lucide-react';
 
 interface BlogPost {
@@ -31,6 +32,7 @@ interface BlogPost {
   author_name: string;
   published_at: string;
   tags: string[];
+  is_featured: boolean;
 }
 
 export default function BlogManagement() {
@@ -58,6 +60,7 @@ export default function BlogManagement() {
     author_name: 'Dr. Mauz',
     published_at: new Date().toISOString(),
     tags: [],
+    is_featured: false,
   });
 
   useEffect(() => {
@@ -132,6 +135,7 @@ export default function BlogManagement() {
         author_name: 'Dr. Mauz',
         published_at: new Date().toISOString(),
         tags: [],
+        is_featured: false,
       });
     }
     setIsFormOpen(true);
@@ -457,7 +461,8 @@ export default function BlogManagement() {
                       <UserIcon className="h-3 w-3" /> {post.author_name}
                     </span>
                   </div>
-                  <h3 className="text-xl font-bold mb-2 group-hover:text-primary transition-colors truncate">
+                  <h3 className="text-xl font-bold mb-2 group-hover:text-primary transition-colors truncate flex items-center gap-2">
+                    {post.is_featured && <Star className="h-4 w-4 text-yellow-400 fill-yellow-400 flex-shrink-0" />}
                     {post.title}
                   </h3>
                   <p className="text-sm text-muted-foreground line-clamp-2 mb-4">{post.excerpt}</p>
@@ -657,6 +662,22 @@ export default function BlogManagement() {
                           </div>
                         </div>
                       )}
+                    </div>
+                  </div>
+
+                  <div
+                    className="flex items-center justify-between rounded-2xl border border-border bg-muted/40 p-4 cursor-pointer select-none"
+                    onClick={() => setFormData({ ...formData, is_featured: !formData.is_featured })}
+                  >
+                    <div className="flex items-center gap-3">
+                      <Star className={`h-5 w-5 transition-colors ${formData.is_featured ? 'text-yellow-400 fill-yellow-400' : 'text-muted-foreground'}`} />
+                      <div>
+                        <p className="text-sm font-bold">Featured</p>
+                        <p className="text-xs text-muted-foreground">Beitrag auf der Startseite hervorheben</p>
+                      </div>
+                    </div>
+                    <div className={`w-11 h-6 rounded-full transition-colors relative ${formData.is_featured ? 'bg-primary' : 'bg-border'}`}>
+                      <div className={`absolute top-0.5 left-0.5 w-5 h-5 rounded-full bg-white shadow transition-transform ${formData.is_featured ? 'translate-x-5' : 'translate-x-0'}`} />
                     </div>
                   </div>
 

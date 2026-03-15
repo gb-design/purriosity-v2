@@ -8,6 +8,7 @@ create table public.blog_posts (
   cover_image text,
   author_name text default 'Dr. Mauz',
   tags text[] default '{}',
+  is_featured boolean default false not null,
   published_at timestamp with time zone default timezone('utc'::text, now()) not null,
   created_at timestamp with time zone default timezone('utc'::text, now()) not null
 );

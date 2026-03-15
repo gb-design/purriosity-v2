@@ -15,6 +15,7 @@ interface BlogPost {
     author_name: string;
     tags: string[];
     published_at: string;
+    is_featured: boolean;
 }
 
 export default function Blog() {
@@ -30,7 +31,7 @@ export default function Blog() {
             try {
                 const { data, error } = await supabase
                     .from('blog_posts')
-                    .select('id,title,slug,excerpt,cover_image,author_name,tags,published_at')
+                    .select('id,title,slug,excerpt,cover_image,author_name,tags,published_at,is_featured')
                     .order('published_at', { ascending: false });
 
                 if (error) throw error;
@@ -83,9 +84,9 @@ export default function Blog() {
         return sorted;
     }, [posts, query, selectedTag, sortBy]);
 
-    const featuredPost = visiblePosts[0];
+    const featuredPost = visiblePosts.find((p) => p.is_featured) || visiblePosts[0];
     const featuredImage = featuredPost ? parseImageFocus(featuredPost.cover_image) : null;
-    const restPosts = visiblePosts.slice(1);
+    const restPosts = visiblePosts.filter((p) => p.id !== featuredPost?.id);
     const isSingleResult = visiblePosts.length === 1;
 
     if (isLoading) {
