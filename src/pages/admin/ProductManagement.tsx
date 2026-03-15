@@ -24,6 +24,8 @@ import {
   X,
   Star,
   Trash,
+  FileText,
+  Link as LinkIcon,
 } from 'lucide-react';
 
 interface Product {
@@ -39,6 +41,7 @@ interface Product {
   tags: string[];
   categories: string[];
   featured_image_url: string;
+  blog_article_url?: string;
   is_active: boolean;
 }
 
@@ -164,6 +167,12 @@ export default function ProductManagement() {
   const [isLinkTypeSupported, setIsLinkTypeSupported] = useState(true);
   const [isProductUrlSupported, setIsProductUrlSupported] = useState(true);
   const [autoDetectedPlatform, setAutoDetectedPlatform] = useState('');
+  const [blogArticles, setBlogArticles] = useState<{ slug: string; title: string }[]>([]);
+  const [showBlogDropdown, setShowBlogDropdown] = useState(false);
+  const [blogSearchQuery, setBlogSearchQuery] = useState('');
+  const [blogInputMode, setBlogInputMode] = useState<'select' | 'manual'>('select');
+  const blogDropdownRef = useRef<HTMLDivElement>(null);
+  const blogInputRef = useRef<HTMLInputElement>(null);
   const { categories: availableCategories, loading: categoriesLoading } = useCategories();
 
   const [formData, setFormData] = useState<Partial<Product>>({
@@ -178,13 +187,28 @@ export default function ProductManagement() {
     categories: [],
     images: [],
     featured_image_url: '',
+    blog_article_url: '',
     is_active: true,
   });
 
   useEffect(() => {
     fetchProducts();
     fetchAllTags();
+    fetchBlogArticles();
   }, []);
+
+  const fetchBlogArticles = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('blog_posts')
+        .select('slug, title')
+        .order('published_at', { ascending: false });
+      if (error) throw error;
+      setBlogArticles(data || []);
+    } catch (error) {
+      console.error('Error fetching blog articles:', error);
+    }
+  };
 
   const fetchProducts = async () => {
     setIsLoading(true);
@@ -288,9 +312,14 @@ export default function ProductManagement() {
         tags: product.tags?.map((tag) => sanitizeTagInput(tag)) || [],
         affiliate_platforms: platformResult.platforms,
       });
+      const blogUrl = product.blog_article_url || '';
+      setBlogInputMode(blogUrl && !blogUrl.startsWith('/blog/') ? 'manual' : 'select');
+      setBlogSearchQuery('');
     } else {
       setAutoDetectedPlatform('');
       setEditingProduct(null);
+      setBlogInputMode('select');
+      setBlogSearchQuery('');
       setFormData({
         title: '',
         description: '',
@@ -303,6 +332,7 @@ export default function ProductManagement() {
         categories: [],
         images: [],
         featured_image_url: '',
+        blog_article_url: '',
         is_active: true,
       });
     }
@@ -333,12 +363,14 @@ export default function ProductManagement() {
         formData.affiliate_platforms || [],
         autoDetectedPlatform
       );
+      const blogUrl = (formData.blog_article_url || '').trim();
       const payload: Record<string, unknown> = {
         ...formData,
         affiliate_url: safeProductUrl,
         product_url: safeProductUrl,
         link_type: selectedLinkType,
         affiliate_platforms: platformResult.platforms,
+        blog_article_url: blogUrl || null,
       };
       if (!isAffiliatePlatformsSupported) {
         delete payload.affiliate_platforms;
@@ -1005,6 +1037,147 @@ export default function ProductManagement() {
                   className="w-full px-4 py-3 bg-muted border border-border rounded-xl focus:ring-2 focus:ring-primary/50 outline-none transition-all resize-none"
                   placeholder="Beschreibe das Produkt im Detail..."
                 />
+              </div>
+
+              <div>
+                <label className="block text-sm font-bold mb-2">Blog-Artikel (optional)</label>
+
+                {/* Selected article preview */}
+                {formData.blog_article_url && blogInputMode === 'select' && (
+                  <div className="flex items-center gap-2 mb-2 px-4 py-3 bg-primary/10 border border-primary/30 rounded-xl">
+                    <FileText className="w-4 h-4 text-primary flex-shrink-0" />
+                    <span className="text-sm font-medium text-foreground truncate flex-1">
+                      {blogArticles.find((a) => `/blog/${a.slug}` === formData.blog_article_url)?.title
+                        || formData.blog_article_url}
+                    </span>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setFormData({ ...formData, blog_article_url: '' });
+                        setBlogSearchQuery('');
+                      }}
+                      className="p-1 rounded-full hover:bg-primary/20 transition-colors flex-shrink-0"
+                    >
+                      <X className="w-4 h-4 text-primary" />
+                    </button>
+                  </div>
+                )}
+
+                {/* Input + Dropdown */}
+                {(!formData.blog_article_url || blogInputMode === 'manual') && (
+                  <div className="relative" ref={blogDropdownRef}>
+                    {/* Mode toggle */}
+                    <div className="flex gap-1 mb-2">
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setBlogInputMode('select');
+                          setBlogSearchQuery('');
+                          setFormData({ ...formData, blog_article_url: '' });
+                        }}
+                        className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium transition-colors ${
+                          blogInputMode === 'select'
+                            ? 'bg-primary/15 text-primary'
+                            : 'bg-muted text-muted-foreground hover:text-foreground'
+                        }`}
+                      >
+                        <FileText className="w-3.5 h-3.5" />
+                        Eigener Artikel
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setBlogInputMode('manual');
+                          setShowBlogDropdown(false);
+                          setBlogSearchQuery('');
+                        }}
+                        className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium transition-colors ${
+                          blogInputMode === 'manual'
+                            ? 'bg-primary/15 text-primary'
+                            : 'bg-muted text-muted-foreground hover:text-foreground'
+                        }`}
+                      >
+                        <LinkIcon className="w-3.5 h-3.5" />
+                        Externer Link
+                      </button>
+                    </div>
+
+                    {blogInputMode === 'select' ? (
+                      <>
+                        <input
+                          ref={blogInputRef}
+                          type="text"
+                          value={blogSearchQuery}
+                          onChange={(e) => {
+                            setBlogSearchQuery(e.target.value);
+                            setShowBlogDropdown(true);
+                          }}
+                          onFocus={() => setShowBlogDropdown(true)}
+                          onBlur={() => setTimeout(() => setShowBlogDropdown(false), 200)}
+                          className="w-full px-4 py-3 bg-muted border border-border rounded-xl focus:ring-2 focus:ring-primary/50 outline-none transition-all text-sm"
+                          placeholder="Blog-Artikel suchen..."
+                        />
+                        {showBlogDropdown && (
+                          <div className="absolute z-50 left-0 right-0 mt-1 max-h-56 overflow-y-auto bg-card border border-border rounded-xl shadow-2xl">
+                            {blogArticles.length === 0 ? (
+                              <div className="px-4 py-3 text-xs text-muted-foreground">
+                                Keine Blog-Artikel vorhanden
+                              </div>
+                            ) : (
+                              (() => {
+                                const query = blogSearchQuery.toLowerCase().trim();
+                                const filtered = query
+                                  ? blogArticles.filter((a) =>
+                                      a.title.toLowerCase().includes(query)
+                                    )
+                                  : blogArticles;
+                                return filtered.length === 0 ? (
+                                  <div className="px-4 py-3 text-xs text-muted-foreground">
+                                    Kein Artikel gefunden
+                                  </div>
+                                ) : (
+                                  filtered.map((article) => (
+                                    <button
+                                      type="button"
+                                      key={article.slug}
+                                      onMouseDown={(e) => {
+                                        e.preventDefault();
+                                        setFormData({
+                                          ...formData,
+                                          blog_article_url: `/blog/${article.slug}`,
+                                        });
+                                        setBlogSearchQuery('');
+                                        setShowBlogDropdown(false);
+                                      }}
+                                      className="w-full text-left px-4 py-2.5 hover:bg-secondary transition-colors flex items-center gap-3"
+                                    >
+                                      <FileText className="w-4 h-4 text-primary flex-shrink-0" />
+                                      <span className="text-sm truncate">{article.title}</span>
+                                    </button>
+                                  ))
+                                );
+                              })()
+                            )}
+                          </div>
+                        )}
+                      </>
+                    ) : (
+                      <input
+                        type="url"
+                        value={formData.blog_article_url || ''}
+                        onChange={(e) =>
+                          setFormData({ ...formData, blog_article_url: e.target.value })
+                        }
+                        className="w-full px-4 py-3 bg-muted border border-border rounded-xl focus:ring-2 focus:ring-primary/50 outline-none transition-all font-mono text-sm"
+                        placeholder="https://example.com/artikel..."
+                      />
+                    )}
+                  </div>
+                )}
+
+                <p className="text-xs text-muted-foreground mt-1">
+                  Wähle einen eigenen Blog-Artikel oder gib eine externe URL an.
+                </p>
               </div>
 
               {/* Images Management */}

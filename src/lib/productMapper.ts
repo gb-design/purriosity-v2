@@ -163,6 +163,10 @@ export const mapDbProductToProduct = (item: Record<string, unknown>): Product =>
       (item.createdAt as string) ??
       (item['created_at'] as string) ??
       new Date().toISOString(),
+    blogArticleUrl:
+      (item['blog_article_url'] as string) ??
+      (item.blogArticleUrl as string) ??
+      undefined,
     isActive:
       typeof item['is_active'] === 'boolean'
         ? (item['is_active'] as boolean)

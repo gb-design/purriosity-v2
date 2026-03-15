@@ -5,6 +5,7 @@ import {
   Bookmark,
   BookmarkPlus,
   ExternalLink,
+  FileText,
   Link as LinkIcon,
   LogIn,
   Mail,
@@ -541,6 +542,22 @@ export default function ProductDetailView({
                 </span>
               )}
             </div>
+
+            {/* Blog Article Button */}
+            {product.blogArticleUrl && (
+              <div className="mt-4">
+                <a
+                  href={product.blogArticleUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center justify-center gap-2 w-full px-6 py-3 border-2 border-primary/30 hover:border-primary text-primary rounded-full font-bold text-base transition-all hover:bg-primary/5"
+                >
+                  <FileText className="w-5 h-5" />
+                  Zum Artikel
+                  <ExternalLink className="w-4 h-4" />
+                </a>
+              </div>
+            )}
           </div>
 
           {/* Sticky Bottom Actions */}

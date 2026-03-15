@@ -14,6 +14,7 @@ export interface Product {
   viewCount: number;
   tags: string[];
   categories?: string[];
+  blogArticleUrl?: string;
   createdAt: string;
   isActive?: boolean;
 }
