@@ -7,6 +7,7 @@ import { parseImageFocus } from '../lib/imageFocus';
 import { Loader2, Calendar, User, ArrowLeft, Tag, Share2, Facebook, Twitter, Mail, Link as LinkIcon, Check } from 'lucide-react';
 import { motion } from 'motion/react';
 import { RevealItem, RevealSection } from '../components/motion/ScrollReveal';
+import LinkedProductCard from '../components/blog/LinkedProductCard';
 
 interface BlogPost {
     id: string;
@@ -82,7 +83,7 @@ export default function BlogPost() {
                 ) : (
                     <div className="w-full h-full bg-secondary" aria-hidden="true" />
                 )}
-                <div className="absolute inset-0 bg-gradient-to-t from-background to-transparent opacity-90"></div>
+                <div className="absolute inset-0 bg-gradient-to-t from-background to-transparent"></div>
 
                 <div className="absolute bottom-0 left-0 w-full p-4 md:p-12">
                     <RevealSection className="container mx-auto max-w-3xl" amount={0.05}>
@@ -211,6 +212,9 @@ export default function BlogPost() {
                         </ReactMarkdown>
                     </RevealSection>
 
+                    {/* Linked Product(s) */}
+                    {slug && <LinkedProductCard slug={slug} />}
+
                     {/* Share & Tags */}
                     <RevealSection className="mt-16 pt-8 border-t border-border">
 
@@ -283,7 +287,7 @@ export default function BlogPost() {
 
                         {/* Tags Footer */}
                         <RevealSection className="flex flex-wrap gap-2" amount={0.25}>
-                            {post.tags.map(tag => (
+                            {post.tags?.map(tag => (
                                 <RevealItem key={tag} soft className="inline-flex items-center px-3 py-1 rounded-full bg-secondary text-secondary-foreground text-sm">
                                     <Tag className="h-3 w-3 mr-2" />
                                     {tag}

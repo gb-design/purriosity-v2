@@ -21,6 +21,7 @@ interface BlogPost {
 export default function Blog() {
     const [posts, setPosts] = useState<BlogPost[]>([]);
     const [isLoading, setIsLoading] = useState(true);
+    const [hasError, setHasError] = useState(false);
     const [query, setQuery] = useState('');
     const [selectedTag, setSelectedTag] = useState('Alle');
     const [sortBy, setSortBy] = useState<'newest' | 'oldest' | 'title-asc' | 'title-desc'>('newest');
@@ -32,12 +33,14 @@ export default function Blog() {
                 const { data, error } = await supabase
                     .from('blog_posts')
                     .select('id,title,slug,excerpt,cover_image,author_name,tags,published_at,is_featured')
+                    .lte('published_at', new Date().toISOString())
                     .order('published_at', { ascending: false });
 
                 if (error) throw error;
                 setPosts(data || []);
             } catch (error) {
                 console.error('Error loading blog posts:', error);
+                setHasError(true);
             } finally {
                 setIsLoading(false);
             }
@@ -84,15 +87,39 @@ export default function Blog() {
         return sorted;
     }, [posts, query, selectedTag, sortBy]);
 
-    const featuredPost = visiblePosts.find((p) => p.is_featured) || visiblePosts[0];
+    const showFeatured = sortBy === 'newest' && !query && selectedTag === 'Alle';
+    const featuredPost = showFeatured
+        ? visiblePosts.find((p) => p.is_featured) ?? null
+        : null;
     const featuredImage = featuredPost ? parseImageFocus(featuredPost.cover_image) : null;
-    const restPosts = visiblePosts.filter((p) => p.id !== featuredPost?.id);
+    const restPosts = featuredPost
+        ? visiblePosts.filter((p) => p.id !== featuredPost.id)
+        : visiblePosts;
     const isSingleResult = visiblePosts.length === 1;
 
     if (isLoading) {
         return (
             <div className="container mx-auto px-4 py-20 flex justify-center">
                 <Loader2 className="h-8 w-8 animate-spin text-primary" />
+            </div>
+        );
+    }
+
+    if (hasError) {
+        return (
+            <div className="container mx-auto px-4 py-20 text-center">
+                <div className="rounded-3xl border border-dashed border-border bg-card p-10 max-w-lg mx-auto">
+                    <h2 className="text-xl font-semibold text-foreground">Artikel konnten nicht geladen werden</h2>
+                    <p className="mt-2 text-text-secondary">
+                        Bitte versuche es später erneut.
+                    </p>
+                    <button
+                        onClick={() => window.location.reload()}
+                        className="mt-5 rounded-full bg-primary px-5 py-2.5 text-sm font-medium text-primary-foreground hover:bg-primary/90 transition-colors"
+                    >
+                        Seite neu laden
+                    </button>
+                </div>
             </div>
         );
     }
@@ -115,7 +142,7 @@ export default function Blog() {
                     </RevealItem>
                     <RevealItem soft>
                         <p className="mt-4 text-base md:text-xl text-text-secondary max-w-3xl mx-auto">
-                            Geschichten, Tipps und Verruecktes aus der Welt der Katzen. Finde schneller
+                            Geschichten, Tipps und Verrücktes aus der Welt der Katzen. Finde schneller
                             die passenden Artikel mit Sortierung, Filter und Ansichtswahl.
                         </p>
                     </RevealItem>
@@ -153,7 +180,7 @@ export default function Blog() {
                                     className="w-full h-11 rounded-full border border-input bg-background pl-10 pr-4 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-ring appearance-none"
                                 >
                                     <option value="newest">Neueste zuerst</option>
-                                    <option value="oldest">Aelteste zuerst</option>
+                                    <option value="oldest">Älteste zuerst</option>
                                     <option value="title-asc">Titel A-Z</option>
                                     <option value="title-desc">Titel Z-A</option>
                                 </select>
@@ -200,7 +227,7 @@ export default function Blog() {
                     </div>
 
                     <div className="mt-4 text-sm text-text-secondary">
-                        {visiblePosts.length} {visiblePosts.length === 1 ? 'Artikel' : 'Artikel'} gefunden
+                        {visiblePosts.length} Artikel gefunden
                     </div>
                 </RevealSection>
 
@@ -218,7 +245,7 @@ export default function Blog() {
                             }}
                             className="mt-5 rounded-full bg-primary px-5 py-2.5 text-sm font-medium text-primary-foreground hover:bg-primary/90 transition-colors"
                         >
-                            Filter zuruecksetzen
+                            Filter zurücksetzen
                         </button>
                     </RevealSection>
                 ) : (
@@ -304,7 +331,7 @@ export default function Blog() {
                                                 </div>
                                                 <div className="flex-1 p-5 flex flex-col">
                                                     <div className="flex flex-wrap gap-2 mb-3">
-                                                        {post.tags.slice(0, 2).map((tag) => (
+                                                        {post.tags?.slice(0, 2).map((tag) => (
                                                             <span key={tag} className="text-xs font-medium px-2.5 py-1 bg-secondary text-secondary-foreground rounded-full">
                                                                 {tag}
                                                             </span>
@@ -364,7 +391,7 @@ export default function Blog() {
                                                     </h3>
                                                     <p className="mt-2 text-sm text-text-secondary line-clamp-2 md:line-clamp-3">{post.excerpt}</p>
                                                     <div className="mt-3 flex flex-wrap gap-2">
-                                                        {post.tags.slice(0, 3).map((tag) => (
+                                                        {post.tags?.slice(0, 3).map((tag) => (
                                                             <span key={tag} className="text-xs font-medium px-2 py-1 bg-secondary text-secondary-foreground rounded-full">
                                                                 {tag}
                                                             </span>

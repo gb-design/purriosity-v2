@@ -34,11 +34,7 @@ export default function Header() {
         <div className="flex items-center justify-between gap-2 md:gap-4">
           {/* LEFT: Logo */}
           <Link to="/" className="flex items-center gap-2 flex-shrink-0 mr-2">
-            <img
-              src="/purriosity_logo.svg"
-              alt="Purriosity"
-              className="h-8 md:h-10 w-auto"
-            />
+            <img src="/purriosity_logo.svg" alt="Purriosity" className="h-8 md:h-10 w-auto" />
           </Link>
 
           {/* CENTER: Search Bar (Desktop Only - Flexible Width) */}
@@ -54,8 +50,9 @@ export default function Header() {
             <nav className="hidden lg:flex items-center gap-4 xl:gap-6 mr-2 xl:mr-4">
               <Link
                 to="/"
-                className="text-sm font-medium hover:text-primary transition-colors whitespace-nowrap"
+                className="text-sm font-medium hover:text-primary transition-colors whitespace-nowrap flex items-center gap-1.5"
               >
+                <img src="/purriosity_head.svg" alt="" className="w-6 h-6" />
                 Fundgrube
               </Link>
               <Link
