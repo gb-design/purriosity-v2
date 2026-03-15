@@ -2,54 +2,41 @@ import { supabase } from './supabase';
 import { mapDbProductToProduct } from './productMapper';
 import type { Product } from '../types/product';
 
-export const fetchRelatedProducts = async (product: Product, limit = 6): Promise<Product[]> => {
-  const fetchFallback = async () => {
-    const { data: fallback, error: fallbackError } = await supabase
-      .from('products')
-      .select('*')
-      .neq('id', product.id)
-      .eq('is_active', true)
-      .order('created_at', { ascending: false })
-      .limit(limit);
+interface ScoredProduct {
+  product: Product;
+  score: number;
+}
 
-    if (fallbackError) throw fallbackError;
-
-    return (fallback ?? [])
-      .map((item: Record<string, unknown>) => mapDbProductToProduct(item))
-      .filter((item: Product) => item.isActive !== false);
-  };
-
-  if (!product?.tags || product.tags.length === 0) {
-    try {
-      return await fetchFallback();
-    } catch (error) {
-      console.warn('Unable to fetch fallback related products:', error);
-      return [];
-    }
-  }
-
-  const fetchWithQuery = async () => {
+export const fetchRelatedProducts = async (product: Product, limit = 5): Promise<Product[]> => {
+  try {
     const { data, error } = await supabase
       .from('products')
       .select('*')
       .neq('id', product.id)
       .eq('is_active', true)
-      .overlaps('tags', product.tags.slice(0, 3))
-      .order('created_at', { ascending: false })
-      .limit(limit);
+      .order('created_at', { ascending: false });
 
     if (error) throw error;
-    return data ?? [];
-  };
+    if (!data || data.length === 0) return [];
 
-  try {
-    const primary = await fetchWithQuery();
-    const mappedPrimary = primary.map((item: Record<string, unknown>) => mapDbProductToProduct(item));
-    if (mappedPrimary.length > 0) {
-      return mappedPrimary;
-    }
+    const all: Product[] = data.map((item: Record<string, unknown>) => mapDbProductToProduct(item));
 
-    return await fetchFallback();
+    const productTags = new Set((product.tags ?? []).map((t: string) => t.toLowerCase()));
+    const productCategories = new Set((product.categories ?? []).map((c: string) => c.toLowerCase()));
+
+    const scored: ScoredProduct[] = all.map((p: Product) => {
+      let score = 0;
+      (p.tags ?? []).forEach((t: string) => { if (productTags.has(t.toLowerCase())) score += 2; });
+      (p.categories ?? []).forEach((c: string) => { if (productCategories.has(c.toLowerCase())) score += 1; });
+      return { product: p, score };
+    });
+
+    scored.sort((a: ScoredProduct, b: ScoredProduct) => {
+      if (b.score !== a.score) return b.score - a.score;
+      return Math.random() - 0.5;
+    });
+
+    return scored.slice(0, limit).map((s: ScoredProduct) => s.product);
   } catch (error) {
     console.warn('Unable to fetch related products:', error);
     return [];

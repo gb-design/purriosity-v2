@@ -113,6 +113,9 @@ export function useSearch() {
     return () => clearTimeout(timeoutId);
   }, [searchTerm, categories, allProducts]);
 
+  // Show popular products when search is empty (by view/purr count, fallback to newest)
+  const popularProducts = allProducts.slice(0, 6);
+
   return {
     searchTerm,
     setSearchTerm,
@@ -120,5 +123,6 @@ export function useSearch() {
     suggestions,
     isLoading,
     error,
+    popularProducts,
   };
 }

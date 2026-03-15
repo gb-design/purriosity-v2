@@ -9,7 +9,7 @@ interface SearchInputProps {
 }
 
 export default function SearchInput({ className }: SearchInputProps) {
-    const { searchTerm, setSearchTerm, results, suggestions, isLoading } = useSearch();
+    const { searchTerm, setSearchTerm, results, suggestions, isLoading, popularProducts } = useSearch();
     const [isFocused, setIsFocused] = useState(false);
     const containerRef = useRef<HTMLDivElement>(null);
 
@@ -27,7 +27,7 @@ export default function SearchInput({ className }: SearchInputProps) {
         };
     }, []);
 
-    const showDropdown = isFocused && searchTerm.trim().length > 0;
+    const showDropdown = isFocused;
 
     return (
         <div ref={containerRef} className={cn("relative w-full", className)}>
@@ -54,12 +54,13 @@ export default function SearchInput({ className }: SearchInputProps) {
             <SearchResultsDropdown
                 results={results}
                 suggestions={suggestions}
+                popularProducts={popularProducts}
                 isLoading={isLoading}
                 isVisible={showDropdown}
+                searchTerm={searchTerm}
                 onClose={() => setIsFocused(false)}
                 onSelectSuggestion={(term: string) => {
                     setSearchTerm(term);
-                    // Keep focus to allow refined search or just execute
                 }}
             />
         </div>

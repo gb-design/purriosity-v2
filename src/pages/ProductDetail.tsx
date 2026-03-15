@@ -33,7 +33,7 @@ export default function ProductDetail() {
                 const productData = mapDbProductToProduct(data as Record<string, unknown>);
                 setProduct(productData);
                 setRelatedLoading(true);
-                const related = await fetchRelatedProducts(productData, 6);
+                const related = await fetchRelatedProducts(productData, 5);
                 setRelatedProducts(related);
                 setRelatedLoading(false);
             } catch (err) {

@@ -53,6 +53,12 @@ export default function Header() {
             {/* Desktop Nav Links */}
             <nav className="hidden lg:flex items-center gap-4 xl:gap-6 mr-2 xl:mr-4">
               <Link
+                to="/"
+                className="text-sm font-medium hover:text-primary transition-colors whitespace-nowrap"
+              >
+                Fundgrube
+              </Link>
+              <Link
                 to="/blog"
                 className="text-sm font-medium hover:text-primary transition-colors whitespace-nowrap"
               >
@@ -146,7 +152,7 @@ export default function Header() {
               className="text-lg font-medium hover:text-primary py-2 block"
               onClick={() => setIsMenuOpen(false)}
             >
-              Startseite
+              Fundgrube
             </Link>
             <Link
               to="/blog"

@@ -81,7 +81,7 @@ export default function ProductModal() {
         setError(null);
 
         setRelatedLoading(true);
-        const related = await fetchRelatedProducts(mapped, 6);
+        const related = await fetchRelatedProducts(mapped, 5);
         setRelatedProducts(related);
         setRelatedLoading(false);
       } catch (err) {
